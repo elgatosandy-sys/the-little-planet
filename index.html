@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Little Planet - A Sweet 16 birthday celebration for Miruna (Rumi)">
+  <title>The Little Planet — Sweet 16 for Rumi</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Preload critical fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Google Fonts: Storybook serif + readable sans + playful handwriting -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/design-tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/animations.css">
+  <link rel="stylesheet" href="styles/pages.css">
+  <link rel="stylesheet" href="styles/transitions.css">
+  <link rel="stylesheet" href="styles/preview.css">
+</head>
+<body>
+  <!--
+    Accessibility: Skip link for keyboard navigation
+    Screen-reader-only until focused
+  -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!--
+    Accessible status region for live announcements.
+    Used by interactive forms and page transitions.
+  -->
+  <div id="status-region" class="status-region sr-only" aria-live="polite" role="status"></div>
+
+  <!--
+    Main application container.
+    Each page (stage) renders its scene here.
+  -->
+  <main id="main-content" class="page-container" role="main" tabindex="-1"></main>
+
+  <!-- Footer: Shared navigation / progress indicator placeholder -->
+  <footer class="page-footer" role="contentinfo">
+    <p>The Little Planet · Sweet 16 · October 22, 2026</p>
+  </footer>
+
+  <!--
+    Application script.
+    Single classic script (no ES modules) so the site works
+    when opened directly from disk (file://) — no server needed.
+  -->
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/stages.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

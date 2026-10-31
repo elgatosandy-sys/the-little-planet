@@ -1,0 +1,133 @@
+/**
+ * ============================================================
+ *  The Little Planet — Preview Styles
+ *  Layout & decorative styles specific to the development
+ *  preview / token showcase screen.
+ * ============================================================
+ */
+
+.preview-page {
+  padding: var(--space-xl) var(--page-padding-x) var(--space-3xl);
+}
+
+/* ---- Header ---- */
+.preview-header {
+  text-align: center;
+  margin-bottom: var(--space-3xl);
+}
+
+.preview-kicker {
+  color: var(--color-dusty-pink);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: var(--text-small-size);
+  text-transform: uppercase;
+}
+
+.preview-subtitle {
+  color: var(--color-burgundy);
+  max-width: 32rem;
+  margin: 0 auto;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Color swatch grid ---- */
+.preview-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.preview-swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--gradient-paper);
+  border: 1px solid var(--color-border-paper);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.preview-swatch__chip {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border-strong);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.preview-swatch__name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-small-size);
+}
+
+.preview-swatch__hex {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+/* ---- Typography stack ---- */
+.preview-type-stack {
+  background: var(--gradient-paper);
+  border: 1px solid var(--color-border-paper);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Button demo row ---- */
+.preview-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-top: var(--space-md);
+}
+
+.preview-hint {
+  color: var(--color-text-disabled);
+  font-style: italic;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Section layout ---- */
+.preview-section {
+  margin-top: var(--space-3xl);
+}
+
+.preview-section:first-child {
+  margin-top: var(--space-xl);
+}
+
+/* ---- Stage list ---- */
+.preview-stage-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+/* ---- Scene transitions for .scene class ---- */
+.scene {
+  opacity: 1;
+  transition:
+    opacity var(--duration-lg) var(--ease-standard),
+    transform var(--duration-lg) var(--ease-gentle);
+}
+
+/* ============================================================
+ *  Reduced motion overrides for preview
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .preview-swatch {
+    box-shadow: none;
+  }
+  .preview-type-stack {
+    box-shadow: none;
+  }
+}

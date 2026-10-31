@@ -1,0 +1,166 @@
+/**
+ * ============================================================
+ *  The Little Planet — Animation Primitives
+ *  Reusable, restrained animations for the storybook.
+ * ============================================================
+ *  Principles:
+ *  - Gentle fades and scale transitions
+ *  - Soft floating movements
+ *  - Restrained golden sparkles
+ *  - Slow, calm object rotation
+ *  - Small particle bursts for interactions
+ *  - Respect prefers-reduced-motion
+ * ============================================================ */
+
+/* ============================================================
+ *  Keyframe Definitions
+ * ============================================================ */
+
+/* ---- Gentle fade in/out ---- */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ---- Gentle scale ---- */
+@keyframes scale-up {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scale-down {
+  from { transform: scale(1); opacity: 1; }
+  to   { transform: scale(0.9); opacity: 0; }
+}
+
+/* ---- Soft floating movement ---- */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--float-rotation, 0deg)); }
+  50%      { transform: translateY(-12px) rotate(var(--float-rotation, 0deg)); }
+}
+
+/* ---- Slow planet rotation ---- */
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---- Golden sparkle (single star shimmer) ---- */
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
+
+/* ---- Particle burst ---- */
+/* Particles use CSS custom properties --end-x / --end-y
+   set inline by js/core/animation.js (particleBurst). */
+@keyframes particle-burst {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(calc(-50% + var(--end-x, 0px)), calc(-50% + var(--end-y, 0px))) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---- Gentle wiggle ---- */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+
+/* ---- Typewriter-style reveal ---- */
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ============================================================
+ *  Utility classes (apply pre-defined animations)
+ * ============================================================ */
+
+/* ---- Reveal on load: faded in ---- */
+[data-animate="fade-in"] {
+  opacity: 0;
+  transition: opacity var(--duration-lg) var(--ease-standard);
+}
+[data-animate="fade-in"].is-visible {
+  opacity: 1;
+}
+
+/* ---- Reveal on load: scale up ---- */
+[data-animate="scale-in"] {
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity var(--duration-lg) var(--ease-standard),
+    transform var(--duration-lg) var(--ease-gentle);
+}
+[data-animate="scale-in"].is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ---- Staggered children animation ---- */
+[data-animate="stagger"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+[data-animate="stagger"] > * {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--duration-md) var(--ease-standard),
+    transform var(--duration-md) var(--ease-gentle);
+}
+[data-animate="stagger"].is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+[data-animate="stagger"].is-visible > *:nth-child(1) { transition-delay: 0ms; }
+[data-animate="stagger"].is-visible > *:nth-child(2) { transition-delay: 75ms; }
+[data-animate="stagger"].is-visible > *:nth-child(3) { transition-delay: 150ms; }
+[data-animate="stagger"].is-visible > *:nth-child(4) { transition-delay: 225ms; }
+[data-animate="stagger"].is-visible > *:nth-child(5) { transition-delay: 300ms; }
+[data-animate="stagger"].is-visible > *:nth-child(6) { transition-delay: 375ms; }
+
+/* ---- Floating movement ---- */
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ---- Slow rotation ---- */
+.rotate-slow {
+  animation: rotate-slow 60s linear infinite;
+}
+
+/* ---- Reduced motion: disable animations ---- */
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .rotate-slow {
+    animation: none !important;
+  }
+
+  [data-animate="fade-in"],
+  [data-animate="scale-in"],
+  [data-animate="stagger"] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  [data-animate="fade-in"].is-visible,
+  [data-animate="scale-in"].is-visible,
+  [data-animate="stagger"].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}

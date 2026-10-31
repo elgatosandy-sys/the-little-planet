@@ -1,0 +1,14 @@
+# The Little Planet — .gitignore
+
+# Server runtime data (persistent SQLite DB and admin key)
+server/data/
+
+# Temporary test artifacts
+data/tmp-test-*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

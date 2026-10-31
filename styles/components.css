@@ -1,0 +1,358 @@
+/**
+ * ============================================================
+ *  The Little Planet — Components
+ *  Buttons, cards, and reusable UI element styles
+ * ============================================================
+ */
+
+/* ============================================================
+ *  Primary Button
+ *  Dusty-pink background, deep burgundy text, rounded.
+ * ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-body-size);
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.5rem;
+  min-height: 48px;
+  transition:
+    background-color var(--duration-md) var(--ease-standard),
+    border-color var(--duration-md) var(--ease-standard),
+    color var(--duration-md) var(--ease-standard),
+    transform var(--duration-short) var(--ease-gentle),
+    box-shadow var(--duration-md) var(--ease-standard);
+  will-change: transform, box-shadow;
+  touch-action: manipulation;
+}
+
+/* ---- Full width ---- */
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ---- Size variants ---- */
+.btn--sm {
+  padding: 0.5rem 1rem;
+  font-size: var(--text-small-size);
+  min-height: 38px;
+}
+
+.btn--lg {
+  padding: 1rem 2rem;
+  font-size: var(--text-body-size);
+  min-height: 54px;
+}
+
+/* ============================================================
+ *  Primary Button Theme (Coral CTA)
+ *  Dusty-pink background with warm cream text — crisp, legible,
+ *  and harmonious against the pink button surface.
+ * ============================================================ */
+.btn--primary {
+  background-color: var(--accent-cta);
+  color: var(--color-warm-cream);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(255, 127, 80, 0.25);
+}
+
+.btn--primary:hover {
+  background-color: var(--accent-salmon);
+  color: var(--color-warm-cream);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 160, 122, 0.35);
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 127, 80, 0.2);
+}
+
+.btn--primary:focus-visible,
+.btn--primary:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+ *  Secondary Button (Misty Rose Surface with Pastel Pink Border)
+ * ============================================================ */
+.btn--secondary {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--accent-pink);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px var(--color-shadow-soft);
+}
+
+.btn--secondary:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--accent-salmon);
+  color: var(--text-main);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-shadow-strong);
+}
+
+.btn--secondary:active {
+  transform: translateY(0);
+}
+
+.btn--secondary:focus-visible,
+.btn--secondary:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+ *  Ghost Button (text-only, subtle)
+ * ============================================================ */
+.btn--ghost {
+  background: transparent;
+  color: var(--accent-heading);
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+}
+
+.btn--ghost:hover {
+  background-color: rgba(186, 85, 211, 0.1);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn--ghost:focus-visible,
+.btn--ghost:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+ *  Disabled state (shared across all button variants)
+ * ============================================================ */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+/* ============================================================
+ *  Loading state
+ * ============================================================ */
+.btn--loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn--loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.5rem;
+  margin-left: -0.5rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin var(--duration-lg) linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+ *  Card component (Primary White Surface)
+ * ============================================================ */
+.card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 4px 24px var(--color-shadow-soft);
+  border: 1px solid var(--color-border-paper);
+  margin-bottom: 20px;
+  transition: box-shadow var(--duration-md) var(--ease-standard);
+}
+
+.card--raised {
+  box-shadow: 0 6px 28px var(--color-shadow-strong);
+}
+
+.card--raised:hover {
+  box-shadow: 0 10px 36px var(--color-shadow-strong);
+}
+
+/* Sub-box inner container */
+.sub-box,
+.card-sub-box {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--accent-pink);
+  padding: 18px;
+  margin-top: 12px;
+}
+
+/* ============================================================
+ *  Status Pills & Badges
+ * ============================================================ */
+.badge,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.badge--completed,
+.badge--success,
+.status-pill--active {
+  background: var(--badge-success-bg);
+  color: var(--badge-success-text);
+}
+
+.badge--unused,
+.badge--pending,
+.status-pill--unused {
+  background: var(--badge-unused-bg);
+  color: var(--badge-unused-text);
+}
+
+.badge--revoked,
+.badge--warning,
+.badge--error {
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-text);
+}
+
+/* ============================================================
+ *  Typography Overlines
+ * ============================================================ */
+.overline,
+.editorial-overline {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: var(--color-text-overline);
+  font-weight: 600;
+  display: block;
+}
+
+/* ============================================================
+ *  Soft Toast Feedback Badge
+ * ============================================================ */
+.toast-badge {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-main);
+  color: #FFFFFF;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 6px 20px var(--color-shadow-strong);
+  z-index: var(--z-toast, 2000);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.toast-badge.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+ *  Paper Card (used by JS PaperCard helper)
+ *  Luxury white/pale-cream surface with dark stone text.
+ * ============================================================ */
+.paper-card {
+  background-color: #FFFFFF;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-paper);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px var(--color-shadow-soft);
+  padding: 28px;
+  color: var(--color-text-secondary);
+}
+
+.paper-card.text-center,
+.paper-card--center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---- Storybook heading (serif, expressive) ---- */
+.storybook-heading {
+  font-family: var(--font-serif);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-line);
+  color: var(--accent-heading);
+  font-size: var(--text-h2-size);
+}
+
+/* ---- Stage content wrapper ---- */
+.stage-content {
+  width: 100%;
+}
+
+/* ---- Content wrapper inside page container ---- */
+.content-wrapper {
+  width: 100%;
+  max-width: var(--width-content-wide);
+}
+
+/* ---- Star particle (used by particleBurst) ---- */
+.star-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particle-burst 0.8s ease-out forwards;
+}
+
+@keyframes particle-burst {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(
+      calc(-50% + var(--tx, 0px)),
+      calc(-50% + var(--ty, 0px))
+    ) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+ *  Reduced motion — button hover suppression
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover {
+    transform: none !important;
+  }
+}

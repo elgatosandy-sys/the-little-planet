@@ -1,0 +1,23 @@
+{
+  "name": "the-little-planet",
+  "version": "1.0.0",
+  "description": "The Little Planet - An interactive Sweet 16 birthday website for Miruna (Rumi)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.mjs",
+    "start": "node server/index.mjs",
+    "build": "echo \"Static site - no build step required\"",
+    "lint": "echo \"No linter configured - using standard HTML/CSS/JS validation\"",
+    "test": "node test_runtime.mjs && node test_api.mjs",
+    "test:runtime": "node test_runtime.mjs",
+    "test:api": "node test_api.mjs",
+    "read-wishes": "node tools/read-wishes.mjs"
+  },
+  "keywords": ["birthday", "sweet-16", "interactive", "storybook", "vanilla-js"],
+  "author": "David",
+  "license": "Private",
+  "engines": {
+    "node": ">=22.5"
+  }
+}
