@@ -481,15 +481,19 @@
         const initialHash = window.location.hash.replace('#', '');
         let targetStage = STAGES.STAGE_1;
 
-        // A bare URL (empty hash) is server-authoritative: the cloud sync
-        // above already ran, so if the server has a currentStage that is a
-        // valid story stage, the bare URL lands on that stage (e.g. an admin
-        // forced a change, or progress was saved from another device). If the
-        // server is offline or has no state, the welcome stage is the safe
-        // fallback. The admin route is never treated as a navigable story
-        // stage — it is only reachable via its own explicit hash.
+        // A bare URL or bare hash (/ or /#) is NOT a reset: it preserves the
+        // user's saved/current stage instead of teleporting them back to
+        // Page 1. The saved stage is read from local storage / the active
+        // session first, then the cloud sync (which already ran above), and
+        // only as a last resort does it fall back to the welcome stage. The
+        // admin route is never treated as a navigable story stage — it is
+        // only reachable via its own explicit hash.
         if (!initialHash) {
-            if (cloudState && cloudState.currentStage && VALID_STAGES.has(cloudState.currentStage) && registry.has(cloudState.currentStage)) {
+            const savedState = initialStorageState || activeSession;
+            const savedStage = savedState && savedState.currentStage;
+            if (savedStage && VALID_STAGES.has(savedStage) && registry.has(savedStage)) {
+                targetStage = savedStage;
+            } else if (cloudState && cloudState.currentStage && VALID_STAGES.has(cloudState.currentStage) && registry.has(cloudState.currentStage)) {
                 targetStage = cloudState.currentStage;
             } else {
                 targetStage = STAGES.STAGE_1;
@@ -570,12 +574,19 @@
 
     const onHashChange = () => {
         const hash = window.location.hash.replace('#', '');
-        // A bare URL (empty hash) ALWAYS resolves to the welcome state —
-        // never to the admin route. An unknown hash leaves the current
-        // stage alone instead of teleporting the user back to the start.
+        // A bare URL or bare hash (/ or /#) is NOT a reset: it preserves the
+        // user's current stage instead of teleporting them back to Page 1.
+        // Only an explicit, known stage hash navigates. The admin route is
+        // never navigable via the address bar.
         let target;
         if (!hash) {
-            target = STAGES.STAGE_1;
+            // Preserve the current stage when the hash is cleared — this is
+            // what happens on / and /# (e.g. a copy/paste or reload that
+            // strips the hash). Only fall back to the welcome stage if no
+            // stage has ever been rendered.
+            target = currentStage && VALID_STAGES.has(currentStage) && registry.has(currentStage)
+                ? currentStage
+                : STAGES.STAGE_1;
         } else if (hash === 'miss-u-rumi' || hash.includes('admin')) {
             // Strict guard: the admin dashboard is a control room, not a
             // stage in the recipient's journey. It must NEVER be recorded as
