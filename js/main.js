@@ -102,6 +102,7 @@
 
     const registry = new Map();
     let currentStage = null;
+    let lastActiveStoryStage = STAGES.STAGE_1;
 
     // Track unlocked stages (stages the user has completed)
     const unlockedStages = new Set([STAGES.STAGE_1]);
@@ -142,6 +143,32 @@
         STAGES.STAGE_10,
         STAGES.STAGE_11
     ];
+
+    // The ONLY stages that may ever be recorded as user progress or saved as
+    // the recipient's "current stage". The admin control room (/#miss-u-rumi)
+    // and any other admin route are deliberately NOT in this allowlist, so a
+    // stray or spoofed stage value can never overwrite the journey's stats.
+    const VALID_STAGES = new Set([
+        STAGES.STAGE_1,   // #birthday-reveal
+        STAGES.STAGE_2,   // #cake-wish
+        STAGES.STAGE_3,   // #little-planet
+        STAGES.STAGE_4,   // #little-note
+        STAGES.STAGE_5,   // #rumi-lore
+        STAGES.STAGE_6,   // #museum-of-rumi
+        STAGES.STAGE_7,   // #libra-constellation
+        STAGES.STAGE_8,   // #three-wishes
+        STAGES.STAGE_9,   // #piece-of-you
+        STAGES.STAGE_10,  // #her-little-planet
+        STAGES.STAGE_11   // #closing-note
+    ]);
+
+    // True when the visitor is currently looking at the admin dashboard.
+    // The admin control room is a separate surface, not a stage, and must
+    // never be redirected away by its own live broadcasts.
+    const isAdminPage = () => {
+        const hash = window.location.hash.replace('#', '');
+        return hash === 'miss-u-rumi' || hash.includes('admin');
+    };
 
     const registerStage = (stageId, renderFn) => {
         registry.set(stageId, renderFn);
@@ -197,11 +224,27 @@
     };
 
     const navigateTo = (stageId) => {
+        // The admin dashboard IS a route that must render (so /#miss-u-rumi
+        // opens the panel instead of a blank screen), but it is a control
+        // surface, not a stage in the recipient's journey — it must NEVER be
+        // saved as currentStage or recorded as user progress.
+        const isAdminRoute = typeof stageId === 'string' &&
+            (stageId === 'miss-u-rumi' || stageId.includes('admin'));
+
+        // Guard: only the 11 valid story stages may ever be recorded as user
+        // progress. This blocks any stray, spoofed, or unknown stage value
+        // from being saved into the journey's stats. The admin route is
+        // exempt because it is rendered, not persisted.
+        if (!isAdminRoute && typeof stageId === 'string' && !VALID_STAGES.has(stageId)) {
+            return;
+        }
+
         if (stageId === currentStage) return;
 
-        // Enforce sequential gating: can only navigate forward if next stage is unlocked
-        // Can always navigate backward to unlocked stages
-        if (!canNavigateTo(stageId)) {
+        // Enforce sequential gating: can only navigate forward if next stage
+        // is unlocked. Can always navigate backward to unlocked stages.
+        // The admin route bypasses this check — it is a control surface.
+        if (!isAdminRoute && !canNavigateTo(stageId)) {
             announceStatus('Complete the current page to continue.');
             return;
         }
@@ -211,10 +254,15 @@
 
         try {
             executeStageTransition(stageId, appRoot);
+            if (!isAdminRoute) {
+                lastActiveStoryStage = stageId;
+            }
             currentStage = stageId;
             window.location.hash = stageId;
 
-            if (window.LittlePlanetStorage) {
+            // The admin dashboard is a control surface, not user progress —
+            // never persist it as the recipient's current stage.
+            if (!isAdminRoute && window.LittlePlanetStorage) {
                 const st = window.LittlePlanetStorage.loadState();
                 st.currentStage = stageId;
                 st.unlockedStages = Array.from(unlockedStages);
@@ -394,7 +442,7 @@
     };
 
     // --- 6. App Initialization ---
-    const boot = () => {
+    const boot = async () => {
         registerStage(STAGES.STAGE_1, renderStage1);
         // NOTE: The /#miss-u-rumi route is normally registered by admin.js
         // (loaded after this file). It is intentionally NOT registered here so
@@ -411,35 +459,113 @@
             registerStage('miss-u-rumi', renderInlineAdminFallback);
         }
 
+        // PART 1.1 — Pull cloud state first so any stage unlocked from another
+        // device (or by the admin control room) is honoured before routing.
+        // This is async and non-fatal: if the server is unreachable we fall
+        // back to the local state already hydrated above.
+        let cloudState = null;
+        if (window.LittlePlanetStorage && typeof window.LittlePlanetStorage.syncCloudState === 'function') {
+            try {
+                cloudState = await window.LittlePlanetStorage.syncCloudState();
+            } catch (err) {
+                console.warn('Cloud state sync failed, using local state:', err);
+            }
+        }
+
+        if (cloudState && cloudState.unlockedStages) {
+            cloudState.unlockedStages.forEach(s => {
+                if (VALID_STAGES.has(s)) unlockedStages.add(s);
+            });
+        }
+
         const initialHash = window.location.hash.replace('#', '');
         let targetStage = STAGES.STAGE_1;
 
-        // A bare URL (empty hash) ALWAYS renders the welcome reveal stage.
-        // We never restore currentStage from local storage here — saved
-        // progress is only honored when a valid stage hash is present in the
-        // URL (explicit deep link) or when the user navigates back into an
-        // active session. Hitting Refresh on the bare URL therefore stays on
-        // /#birthday-reveal instead of jumping to an old saved stage.
+        // A bare URL (empty hash) is server-authoritative: the cloud sync
+        // above already ran, so if the server has a currentStage that is a
+        // valid story stage, the bare URL lands on that stage (e.g. an admin
+        // forced a change, or progress was saved from another device). If the
+        // server is offline or has no state, the welcome stage is the safe
+        // fallback. The admin route is never treated as a navigable story
+        // stage — it is only reachable via its own explicit hash.
         if (!initialHash) {
-            targetStage = STAGES.STAGE_1;
+            if (cloudState && cloudState.currentStage && VALID_STAGES.has(cloudState.currentStage) && registry.has(cloudState.currentStage)) {
+                targetStage = cloudState.currentStage;
+            } else {
+                targetStage = STAGES.STAGE_1;
+            }
         } else if (initialHash === 'miss-u-rumi') {
             // /#miss-u-rumi always renders the admin dashboard immediately —
             // there is no password form or key prompt. Never a blank screen.
             targetStage = 'miss-u-rumi';
         } else if (initialHash && registry.has(initialHash)) {
-            targetStage = initialHash;
-        } else if (initialStorageState && initialStorageState.currentStage && registry.has(initialStorageState.currentStage)) {
-            targetStage = initialStorageState.currentStage;
+            // PART 1.2 — A deep link to a stage is only honoured if that stage
+            // is already unlocked (locally or via cloud state). Otherwise the
+            // visitor lands on the welcome stage, preserving the sequential
+            // journey. This means a reload on /#her-little-planet keeps the
+            // active route instead of resetting to Page 1.
+            targetStage = unlockedStages.has(initialHash) ? initialHash : STAGES.STAGE_1;
+        } else if ((cloudState || initialStorageState) && (cloudState || initialStorageState).currentStage && registry.has((cloudState || initialStorageState).currentStage)) {
+            targetStage = (cloudState || initialStorageState).currentStage;
         }
 
         navigateTo(targetStage);
 
-        if (initialStorageState && initialStorageState.scrollPositions && initialStorageState.scrollPositions[targetStage]) {
+        const restoreScroll = (cloudState || initialStorageState);
+        if (restoreScroll && restoreScroll.scrollPositions && restoreScroll.scrollPositions[targetStage]) {
             setTimeout(() => {
-                window.scrollTo(0, initialStorageState.scrollPositions[targetStage]);
+                window.scrollTo(0, restoreScroll.scrollPositions[targetStage]);
             }, 50);
         }
         window.addEventListener('hashchange', onHashChange);
+
+        // PART 1.1/1.3 — Background cloud sync so an admin's forced stage
+        // change (or another visitor's progress) is reflected on this client
+        // without a manual refresh. Pauses when the tab is hidden.
+        const syncLoop = async () => {
+            if (document.hidden) return;
+            // Admin Isolation: The admin control room is a control surface, not
+            // a recipient journey stage. When an admin clicks a Live Stage
+            // Control button (e.g. "Force to Page 11"), it broadcasts the new
+            // stage to all visitors — but must NEVER force the admin's own tab
+            // off /#miss-u-rumi and away from the dashboard.
+            if (isAdminPage()) return;
+            if (!window.LittlePlanetStorage || typeof window.LittlePlanetStorage.syncCloudState !== 'function') return;
+            try {
+                const cloudState = await window.LittlePlanetStorage.syncCloudState();
+                if (!cloudState) return;
+                if (cloudState.unlockedStages) {
+                    cloudState.unlockedStages.forEach(s => {
+                        if (VALID_STAGES.has(s)) unlockedStages.add(s);
+                    });
+                }
+                // If the admin forced a stage change, follow it in real time.
+                // Restrict forced navigation to valid story stages only.
+                if (cloudState.currentStage && cloudState.currentStage !== currentStage && VALID_STAGES.has(cloudState.currentStage) && registry.has(cloudState.currentStage)) {
+                    if (unlockedStages.has(cloudState.currentStage) || STAGE_ORDER.indexOf(cloudState.currentStage) === STAGE_ORDER.indexOf(currentStage) + 1) {
+                        navigateTo(cloudState.currentStage);
+                    }
+                }
+            } catch (err) {
+                // Offline — silently keep local state.
+            }
+        };
+        let syncTimer = null;
+        const startSyncLoop = () => {
+            syncLoop();
+            syncTimer = setInterval(syncLoop, 5000);
+        };
+        const stopSyncLoop = () => {
+            if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+        };
+        startSyncLoop();
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopSyncLoop();
+            } else {
+                startSyncLoop();
+            }
+        });
     };
 
     const onHashChange = () => {
@@ -450,7 +576,14 @@
         let target;
         if (!hash) {
             target = STAGES.STAGE_1;
-        } else if (registry.has(hash)) {
+        } else if (hash === 'miss-u-rumi' || hash.includes('admin')) {
+            // Strict guard: the admin dashboard is a control room, not a
+            // stage in the recipient's journey. It must NEVER be recorded as
+            // "current stage" or saved as user progress.
+            return;
+        } else if (VALID_STAGES.has(hash) && registry.has(hash)) {
+            // Only the 11 valid story stages may be navigated to via the
+            // address bar. Unknown or spoofed hashes are ignored entirely.
             target = hash;
         } else {
             return;
@@ -569,6 +702,7 @@
         prefersReducedMotion,
         particleBurst,
         PageContainer,
+        getLastActiveStoryStage: () => lastActiveStoryStage,
         renderBackButton,
         confirmAction,
         unlockStage,

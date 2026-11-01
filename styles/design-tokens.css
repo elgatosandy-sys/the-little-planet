@@ -22,14 +22,15 @@
    * ============================================================ */
 
   /* ---- Core brand colors ---- */
-  --color-charcoal:       #17151B;   /* Cosmic deep background */
-  --color-burgundy:       #482630;   /* Cosmic midground / paper text */
-  --color-dusty-pink:     #D7A3AD;   /* Buttons, borders, accents */
-  --color-warm-cream:     #F1E7DC;   /* Paper backgrounds */
-  --color-gold:           #D4AF7F;   /* Focus ring, sparkles */
-  --color-lavender:       #9B8CB8;   /* Soft lavender accent */
-  --color-pink-violet:    #A88B9E;   /* Muted pink-violet accent */
-  --color-planet-green:   #6B8E6B;   /* Planet / success green */
+  --color-charcoal:         #17151B;   /* Cosmic deep background */
+  --color-burgundy:         #482630;   /* Cosmic midground / paper text */
+  --color-burgundy-bright:  #8B5A6B;   /* Brighter burgundy for dark backgrounds */
+  --color-dusty-pink:       #D7A3AD;   /* Buttons, borders, accents */
+  --color-warm-cream:       #F1E7DC;   /* Paper backgrounds */
+  --color-gold:             #D4AF7F;   /* Focus ring, sparkles */
+  --color-lavender:         #9B8CB8;   /* Soft lavender accent */
+  --color-pink-violet:      #A88B9E;   /* Muted pink-violet accent */
+  --color-planet-green:     #6B8E6B;   /* Planet / success green */
 
   /* ---- Backgrounds & accents mapped to cosmic palette ---- */
   --bg-primary:          var(--color-warm-cream);
@@ -44,11 +45,12 @@
   --pink-accent:         var(--color-dusty-pink);
 
   /* ---- Text colors ---- */
-  --color-text-primary:   var(--color-burgundy);
-  --color-text-secondary: var(--color-pink-violet);
-  --color-text-on-dark:   #FFFFFF;
-  --color-text-disabled:  #9A8F98;
-  --color-text-overline:  var(--color-pink-violet);
+  --color-text-primary:      var(--color-burgundy);
+  --color-text-primary-bright: var(--color-burgundy-bright);
+  --color-text-secondary:    var(--color-pink-violet);
+  --color-text-on-dark:      #FFFFFF;
+  --color-text-disabled:     #9A8F98;
+  --color-text-overline:     var(--color-pink-violet);
 
   /* ---- Border & shadow colors ---- */
   --color-border-paper:    rgba(215, 163, 173, 0.3);

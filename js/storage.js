@@ -173,6 +173,24 @@
         } catch (e) {}
     };
 
+    // Wipe every piece of visitor data in one shot: local browser storage,
+    // the active session, and the server-side global state. Used to start
+    // from a clean slate after a site-structure update.
+    const clearAllData = async () => {
+        fullFactoryReset();
+        if (typeof syncToCloud === 'function') {
+            try {
+                await syncToCloud({
+                    currentStage: 'birthday-reveal',
+                    unlockedStages: ['birthday-reveal'],
+                    scrollPositions: {}
+                });
+            } catch (e) {
+                // Offline — the local wipe already happened; that's enough.
+            }
+        }
+    };
+
     // --- Reset progress (admin "Reset Progress") ---------------------------
     // Clears the visitor's active state and recipient progress — current
     // stage, unlocked stages, scroll positions, and the active session —
@@ -225,6 +243,7 @@
         resetProgressToStage1,
         resetProgress,
         fullFactoryReset,
+        clearAllData,
         exportStateJSON,
         importStateJSON
     };

@@ -1135,11 +1135,11 @@
                 num: '04/04',
                 tag: 'EXHIBIT #04 — BELLA COLLECTION',
                 title: 'Bella the DOG 🐶',
-                text: 'Remember all those times I brought Bella along and we\'d spend time with her together? 🥹❤️ Bella deserves her own spot in the museum for all the times she was part of our little moments together.',
-                classification: 'Good girl. Certified memory maker. 🐾',
+                text: 'Remember all those times I brought Bella along and we\'d spend time with her together? 🥺❤️ Bella deserves her own spot in the museum for all the times she was part of our little moments together.',
+                classification: 'Good girl. Certified memory maker.',
                 icon: '🐶',
                 illo: illos.dog,
-                stamp: '10/10 good girl'
+                stamp: '10/10 good girl 🐶'
             }
         ];
 
@@ -1165,21 +1165,8 @@
         const exText = document.createElement('p');
         exText.className = 'museum-exhibit-text';
 
-        // Stand container for 2D-facing exhibit items
-        const standWrap = document.createElement('div');
-        standWrap.className = 'museum-stand-wrap';
-
-        const stand1 = document.createElement('div');
-        stand1.className = 'museum-stand museum-stand--1';
-        const stand2 = document.createElement('div');
-        stand2.className = 'museum-stand museum-stand--2';
-
-        // Platform containers for 2D items
-        const plat1 = document.createElement('div');
-        plat1.className = 'museum-platform museum-platform--1';
-        const plat2 = document.createElement('div');
-        plat2.className = 'museum-platform museum-platform--2';
-
+        // Illustration container — floats cleanly inside the card with no
+        // awkward cylinder stands underneath it.
         const illoEl = document.createElement('div');
         illoEl.className = 'museum-illo-container';
         illoEl.setAttribute('aria-hidden', 'true');
@@ -1191,23 +1178,18 @@
         stampEl.className = 'museum-stamp';
         stampEl.setAttribute('aria-hidden', 'true');
 
-        standWrap.appendChild(stand1);
-        standWrap.appendChild(stand2);
-        standWrap.appendChild(plat1);
-        standWrap.appendChild(plat2);
-        standWrap.appendChild(illoEl);
-
-        // "10/10 good girl" speech-bubble tag — positioned above-right of the
-        // puppy's head, tilted oblique to the right like the reference image.
+        // "10/10 good girl" speech-bubble tag — compact bubble positioned
+        // above the puppy's head with a dynamic editorial tilt.
         stampEl.style.position = 'absolute';
-        stampEl.style.right = '4px';
-        stampEl.style.top = '-18px';
+        stampEl.style.right = '-12px';
+        stampEl.style.top = '-10px';
         stampEl.style.zIndex = '6';
+        stampEl.style.transform = 'rotate(15deg)';
         illoEl.appendChild(stampEl);
 
         caseEl.appendChild(tagEl);
         caseEl.appendChild(iconEl);
-        caseEl.appendChild(standWrap);
+        caseEl.appendChild(illoEl);
         caseEl.appendChild(exTitle);
         caseEl.appendChild(exText);
         caseEl.appendChild(classEl);
@@ -1236,24 +1218,20 @@
             iconEl.textContent = ex.icon;
             exTitle.textContent = ex.title;
             exText.textContent = ex.text;
+            classEl.textContent = ex.classification || '';
 
-            // Render the 2D-facing exhibit illustration inside its stand/platform scene
+            // Render the 2D-facing exhibit illustration inside its container.
             if (ex.illo) {
-                standWrap.innerHTML = (ex.id === 'exhibit-4' ? pawPrints : '') + ex.illo;
+                illoEl.innerHTML = (ex.id === 'exhibit-4' ? pawPrints : '') + ex.illo;
             } else {
-                standWrap.innerHTML = '';
+                illoEl.innerHTML = '';
             }
 
-            // Re-attach the Bella stamp next to the illustration (it was
-            // appended to illoEl at init, but standWrap.innerHTML rebuilds the
-            // illustration node — so the stamp must be re-appended to stay
-            // positioned correctly on the puppy's head).
+            // Re-attach the Bella stamp next to the illustration
             if (ex.stamp) {
                 stampEl.textContent = ex.stamp;
-                stampEl.style.display = 'block';
-                if (stampEl.parentNode !== illoEl) {
-                    illoEl.appendChild(stampEl);
-                }
+                stampEl.style.display = 'inline-flex';
+                illoEl.appendChild(stampEl);
             } else {
                 stampEl.style.display = 'none';
             }
@@ -1380,7 +1358,7 @@
 
         const title = document.createElement('h2');
         title.style.fontFamily = 'var(--font-serif)';
-        title.style.color = 'var(--color-burgundy)';
+        title.style.color = 'var(--color-burgundy-bright)';
         title.textContent = titleText;
 
         const msg = document.createElement('p');
@@ -1421,12 +1399,12 @@
 
         const title = document.createElement('h2');
         title.className = 'storybook-heading';
-        title.style.color = 'var(--color-burgundy)';
+        title.style.color = '#FFF8E7';
         title.textContent = 'The Libra Constellation ✨';
 
         const subtitle = document.createElement('p');
         subtitle.className = 'body-text';
-        subtitle.style.color = 'var(--color-pink-violet)';
+        subtitle.style.color = 'var(--color-warm-cream)';
         subtitle.textContent = "Every star has its place. Let's connect them.";
 
         // Constellation label
@@ -2538,6 +2516,9 @@
 </svg>`;
         planetWrapper.appendChild(userStar);
 
+        // Attach the planet illustration to the stage so it actually renders.
+        stage.appendChild(planetWrapper);
+
         // ---- Birthday message (real, selectable HTML text) ----
         const messageCard = document.createElement('div');
         messageCard.className = 'her-planet-message';
@@ -2564,11 +2545,26 @@
         });
 
         stage.appendChild(messageCard);
-        container.appendChild(stage);
+
+        // ---- "Next" button: disabled until the final paragraph has faded in,
+        //      then unlocked so the visitor can step into the Closing Note.
+        const proceedBtn = document.createElement('button');
+        proceedBtn.type = 'button';
+        proceedBtn.className = 'btn btn--primary her-planet-proceed';
+        proceedBtn.textContent = 'Next ✨';
+        proceedBtn.disabled = true;
+        stage.appendChild(proceedBtn);
+
+        const gotoClosingNote = () => {
+            if (proceedBtn.disabled) return;
+            if (unlockStage) unlockStage(STAGES.STAGE_11);
+            navigateTo(STAGES.STAGE_11);
+        };
+        proceedBtn.addEventListener('click', gotoClosingNote);
 
         // ---- Reveal flow: "Rumi ❤️" first, then the paragraphs fade in one by
-        //      one at a brisk reading pace. No buttons, no skip — the message
-        //      simply flows to the end and stays there.
+        //      one at a brisk reading pace. The "Next" button unlocks once the
+        //      final paragraph has appeared, so the message is fully read first.
         let revealStarted = false;
         let revealTimers = [];
 
@@ -2606,6 +2602,16 @@
                 revealTimers.push(t);
                 elapsed += paragraphDelay(el);
             });
+
+            // Enable the "Next" button a beat after the final paragraph appears,
+            // so the visitor has absorbed the closing line before moving on.
+            const unlockDelay = prefersReducedMotion() ? 0 : elapsed + 400;
+            const unlockTimer = setTimeout(() => {
+                proceedBtn.disabled = false;
+                proceedBtn.classList.add('is-enabled');
+                proceedBtn.focus();
+            }, unlockDelay);
+            revealTimers.push(unlockTimer);
         };
 
         const initialDelay = prefersReducedMotion() ? 0 : 0;
@@ -2618,6 +2624,9 @@
                     el.classList.remove('is-pending');
                     el.classList.add('is-shown');
                 });
+                proceedBtn.disabled = false;
+                proceedBtn.classList.add('is-enabled');
+                proceedBtn.focus();
             } else {
                 startGradualReveal();
             }
@@ -2628,6 +2637,7 @@
             container.classList.add('is-reduced-motion');
         }
 
+        container.appendChild(stage);
         return PageContainer(container, 'page--her-planet');
     };
 

@@ -456,6 +456,116 @@ async function handleSaveState(req, res) {
 }
 
 // ---------------------------------------------------------------------------
+// /api/admin/state — admin control room: live read + forced transitions
+// ---------------------------------------------------------------------------
+async function handleAdminGetState(req, res, url) {
+    const sessionId = url.searchParams.get('session_id') || 'rumi_global_session';
+    try {
+        const row = db.prepare('SELECT state_json, updated_at FROM user_state WHERE session_id = ?').get(sessionId);
+        if (!row) {
+            return send(res, 200, { ok: true, state: null, updated_at: null });
+        }
+        return send(res, 200, { ok: true, state: JSON.parse(row.state_json), updated_at: row.updated_at });
+    } catch (err) {
+        return publicError(res, 500, 'Could not retrieve admin state');
+    }
+}
+
+async function handleAdminSetState(req, res) {
+    let payload;
+    try {
+        const raw = await readBody(req);
+        payload = raw ? JSON.parse(raw) : {};
+    } catch {
+        return publicError(res, 400, 'Invalid JSON');
+    }
+
+    const sessionId = (typeof payload.session_id === 'string' && payload.session_id.trim()) ? payload.session_id.trim() : 'rumi_global_session';
+    const action = payload.action;
+    const targetStage = payload.targetStage;
+
+    if (!action) {
+        return publicError(res, 400, 'Action required');
+    }
+
+    let row;
+    try {
+        row = db.prepare('SELECT state_json FROM user_state WHERE session_id = ?').get(sessionId);
+    } catch (err) {
+        return publicError(res, 500, 'Could not read state');
+    }
+
+    let state = row ? JSON.parse(row.state_json) : {
+        currentStage: 'birthday-reveal',
+        scrollPositions: {},
+        unlockedStages: ['birthday-reveal'],
+        lockedWish: '',
+        starSaved: false,
+        stageOverrides: {}
+    };
+
+    const VALID_STAGES = [
+        'birthday-reveal', 'cake-wish', 'little-planet', 'little-note',
+        'rumi-lore', 'museum-of-rumi', 'libra-constellation', 'three-wishes',
+        'piece-of-you', 'her-little-planet', 'closing-note'
+    ];
+
+    switch (action) {
+        case 'unlock_stage': {
+            if (!targetStage || !VALID_STAGES.includes(targetStage)) {
+                return publicError(res, 400, 'Invalid target stage');
+            }
+            if (!state.unlockedStages) state.unlockedStages = ['birthday-reveal'];
+            if (!state.unlockedStages.includes(targetStage)) {
+                state.unlockedStages.push(targetStage);
+            }
+            state.currentStage = targetStage;
+            state.stageOverrides = state.stageOverrides || {};
+            state.stageOverrides[targetStage] = { forced: true, by: 'admin', at: new Date().toISOString() };
+            break;
+        }
+        case 'force_stage': {
+            if (!targetStage || !VALID_STAGES.includes(targetStage)) {
+                return publicError(res, 400, 'Invalid target stage');
+            }
+            if (!state.unlockedStages) state.unlockedStages = ['birthday-reveal'];
+            if (!state.unlockedStages.includes(targetStage)) {
+                state.unlockedStages.push(targetStage);
+            }
+            state.currentStage = targetStage;
+            state.stageOverrides = state.stageOverrides || {};
+            state.stageOverrides[targetStage] = { forced: true, by: 'admin', at: new Date().toISOString() };
+            break;
+        }
+        case 'reset': {
+            state.currentStage = 'birthday-reveal';
+            state.unlockedStages = ['birthday-reveal'];
+            state.scrollPositions = {};
+            state.stageOverrides = {};
+            break;
+        }
+        default:
+            return publicError(res, 400, 'Unknown action');
+    }
+
+    const stateJson = JSON.stringify(state);
+    const updatedAt = new Date().toISOString();
+    try {
+        db.prepare(`
+            INSERT INTO user_state (session_id, state_json, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(session_id) DO UPDATE SET
+                state_json = excluded.state_json,
+                updated_at = excluded.updated_at
+        `).run(sessionId, stateJson, updatedAt);
+        return send(res, 200, { ok: true, action, targetStage: targetStage || null, updated_at: updatedAt, state });
+    } catch (err) {
+        console.error('Admin state update failed:', err);
+        return publicError(res, 500, 'Admin state update failed');
+    }
+}
+
+// ---------------------------------------------------------------------------
 // API routing
 // ---------------------------------------------------------------------------
 async function handleApi(req, res, url) {
@@ -475,17 +585,23 @@ async function handleApi(req, res, url) {
         if (url.pathname === '/api/stars' && req.method === 'POST') {
             return await handleCreateStar(req, res);
         }
-        if (url.pathname === '/api/admin/wishes' && req.method === 'GET') {
+        if ((url.pathname === '/api/admin/wishes' || url.pathname.startsWith('/api/admin/wishes/')) && req.method === 'GET') {
             return handleAdminReadWishes(req, res, url);
         }
-        if (url.pathname === '/api/admin/stars' && req.method === 'GET') {
+        if ((url.pathname === '/api/admin/stars' || url.pathname.startsWith('/api/admin/stars/')) && req.method === 'GET') {
             return handleAdminReadStars(req, res, url);
         }
-        if (url.pathname === '/api/admin/wishes' && req.method === 'DELETE') {
+        if ((url.pathname === '/api/admin/wishes' || url.pathname.startsWith('/api/admin/wishes/')) && req.method === 'DELETE') {
             return handleAdminDeleteWish(req, res, url);
         }
-        if (url.pathname === '/api/admin/stars' && req.method === 'DELETE') {
+        if ((url.pathname === '/api/admin/stars' || url.pathname.startsWith('/api/admin/stars/')) && req.method === 'DELETE') {
             return handleAdminDeleteStar(req, res, url);
+        }
+        if (url.pathname === '/api/admin/state' && req.method === 'GET') {
+            return handleAdminGetState(req, res, url);
+        }
+        if (url.pathname === '/api/admin/state' && req.method === 'POST') {
+            return await handleAdminSetState(req, res);
         }
         return send(res, 404, { ok: false, message: 'Not found.' });
     } catch (err) {

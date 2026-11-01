@@ -16,33 +16,50 @@ const STARS_API = '/api/admin/stars';
 const renderAdminContent = () => {
     const app = window.LittlePlanet;
     if (!app) return null;
-    const { PageContainer, makeStarfield, renderBackButton, STAGES, navigateTo } = app;
+    const { PageContainer, makeStarfield, STAGES, navigateTo } = app;
 
     const container = document.createElement('div');
     container.className = 'stage-content stage-admin';
 
     container.appendChild(makeStarfield());
 
-    if (renderBackButton) {
-        container.appendChild(renderBackButton(STAGES.STAGE_1));
-    }
-
     const stage = document.createElement('div');
     stage.className = 'admin-stage';
 
+    // Header badge
+    const badgeWrap = document.createElement('div');
+    badgeWrap.style.textAlign = 'center';
+    badgeWrap.style.marginBottom = 'var(--space-xs)';
+
+    const badge = document.createElement('span');
+    badge.className = 'status-pill';
+    badge.textContent = 'SECRET CONTROL ROOM';
+    badge.style.background = 'var(--color-burgundy-bright)';
+    badge.style.color = '#FAF3E0';
+    badge.style.padding = '4px 14px';
+    badge.style.fontSize = '0.7rem';
+    badge.style.letterSpacing = '1.5px';
+    badge.style.fontWeight = '600';
+    badge.style.borderRadius = '999px';
+    badge.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    badgeWrap.appendChild(badge);
+    stage.appendChild(badgeWrap);
+
     const title = document.createElement('h2');
     title.className = 'storybook-heading';
-    title.textContent = 'Admin Panel';
+    title.textContent = 'A quiet little inbox';
     title.style.textAlign = 'center';
-    title.style.color = 'var(--color-burgundy)';
+    title.style.color = 'var(--color-burgundy-bright)';
     stage.appendChild(title);
 
     const subtitle = document.createElement('p');
     subtitle.className = 'overline';
-    subtitle.textContent = 'Secret Control Room';
+    subtitle.textContent = 'Only final status and anything Rumi chooses to share.';
     subtitle.style.textAlign = 'center';
     subtitle.style.marginTop = 'var(--space-xs)';
-    subtitle.style.color = 'var(--color-pink-violet)';
+    subtitle.style.color = '#FFF8E7';
+    subtitle.style.fontSize = '0.9rem';
+    subtitle.style.fontStyle = 'italic';
     stage.appendChild(subtitle);
 
     const escapeHtml = (str) => String(str == null ? '' : str)
@@ -77,11 +94,12 @@ const renderAdminContent = () => {
 
     // Breakdown overview card
     const breakdownCard = document.createElement('div');
-    breakdownCard.className = 'card';
+    breakdownCard.className = 'card admin-card';
     breakdownCard.style.marginBottom = 'var(--space-lg)';
     breakdownCard.style.padding = 'var(--space-md) var(--space-lg)';
-    breakdownCard.style.background = 'var(--color-warm-cream)';
-    breakdownCard.style.border = '1px solid var(--color-border-paper)';
+    breakdownCard.style.background = '#FAF3E0';
+    breakdownCard.style.border = '1px solid rgba(215, 163, 173, 0.4)';
+    breakdownCard.style.borderRadius = '20px';
 
     const breakdownHead = document.createElement('div');
     breakdownHead.style.display = 'flex';
@@ -93,7 +111,7 @@ const renderAdminContent = () => {
     breakdownH3.textContent = 'Response Breakdown';
     breakdownH3.style.fontFamily = 'var(--font-serif)';
     breakdownH3.style.fontSize = 'var(--text-h4-size)';
-    breakdownH3.style.color = 'var(--color-burgundy)';
+    breakdownH3.style.color = 'var(--color-burgundy-bright)';
     breakdownHead.appendChild(breakdownH3);
 
     const breakdownTotal = document.createElement('span');
@@ -115,19 +133,22 @@ const renderAdminContent = () => {
     const breakdownItems = [
         { key: 'wishes', label: 'Wishes saved', value: '0' },
         { key: 'stars', label: 'Stars saved', value: '0' },
-        { key: 'locked', label: 'Wish locked', value: 'No' },
         { key: 'stage', label: 'Current stage', value: 'Birthday Reveal' },
     ];
 
     breakdownItems.forEach((item) => {
         const cell = document.createElement('div');
-        cell.style.background = 'var(--color-warm-cream)';
-        cell.style.borderRadius = 'var(--radius-md)';
-        cell.style.padding = 'var(--space-xs) var(--space-sm)';
-        cell.style.border = '1px solid var(--color-border-paper)';
+        cell.style.background = '#FFFBEF';
+        cell.style.borderRadius = '14px';
+        cell.style.padding = 'var(--space-sm)';
+        cell.style.border = '1px solid rgba(215, 163, 173, 0.3)';
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.justifyContent = 'center';
+        cell.style.minWidth = '0';
         cell.innerHTML = `
-            <span class="status-pill status-pill--active" style="font-size:0.6rem;padding:1px 8px;margin-bottom:4px;display:inline-block;color:var(--color-burgundy);background:var(--color-dusty-pink);">${item.label}</span>
-            <div class="admin-breakdown__value" id="admin-breakdown-${item.key}" style="font-family:var(--font-serif);font-size:1.1rem;color:var(--color-burgundy);margin-top:2px;">${item.value}</div>
+            <span class="status-pill status-pill--active" style="font-size:0.65rem;padding:2px 8px;margin-bottom:6px;display:inline-block;color:#3D2B1F;background:#D7A3AD;border-radius:999px;width:fit-content;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</span>
+            <div class="admin-breakdown__value" id="admin-breakdown-${item.key}" style="font-family:var(--font-serif);font-size:1.15rem;font-weight:600;color:#3D2B1F;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.value}</div>
         `;
         breakdownGrid.appendChild(cell);
     });
@@ -137,19 +158,26 @@ const renderAdminContent = () => {
     // Submissions section (Wishes & Stars)
     const submissionsSection = document.createElement('div');
     submissionsSection.id = 'admin-submissions-section';
+    submissionsSection.className = 'card admin-card';
+    submissionsSection.style.marginBottom = 'var(--space-lg)';
+    submissionsSection.style.padding = 'var(--space-md) var(--space-lg)';
+    submissionsSection.style.background = '#FAF3E0';
+    submissionsSection.style.border = '1px solid rgba(215, 163, 173, 0.4)';
+    submissionsSection.style.borderRadius = '20px';
 
     const submissionsHead = document.createElement('div');
     submissionsHead.className = 'admin-submissions-head';
     submissionsHead.style.display = 'flex';
-    submissionsHead.style.alignItems = 'baseline';
-    submissionsHead.style.justifyContent = 'space-between';
+    submissionsHead.style.flexDirection = 'column';
+    submissionsHead.style.alignItems = 'flex-end';
     submissionsHead.style.gap = 'var(--space-xs)';
 
     const submissionsH3 = document.createElement('h3');
     submissionsH3.textContent = 'Submissions';
     submissionsH3.style.fontFamily = 'var(--font-serif)';
-    submissionsH3.style.fontSize = 'var(--text-h3-size)';
-    submissionsH3.style.color = 'var(--color-burgundy)';
+    submissionsH3.style.fontSize = 'var(--text-h4-size)';
+    submissionsH3.style.color = 'var(--color-burgundy-bright)';
+    submissionsH3.style.alignSelf = 'flex-start';
     submissionsHead.appendChild(submissionsH3);
 
     const refreshBtn = document.createElement('button');
@@ -157,6 +185,9 @@ const renderAdminContent = () => {
     refreshBtn.className = 'btn btn--secondary btn--sm';
     refreshBtn.id = 'admin-refresh-submissions';
     refreshBtn.textContent = 'Refresh Submissions';
+    refreshBtn.style.borderRadius = '999px';
+    refreshBtn.style.padding = '6px 16px';
+    refreshBtn.style.fontSize = '0.8rem';
     submissionsHead.appendChild(refreshBtn);
 
     submissionsSection.appendChild(submissionsHead);
@@ -180,16 +211,18 @@ const renderAdminContent = () => {
 
     // Single State Control section: Reset Progress ONLY
     const actionsSection = document.createElement('div');
-    actionsSection.className = 'admin-section';
+    actionsSection.className = 'admin-section card admin-card';
     actionsSection.style.marginTop = 'var(--space-lg)';
-    actionsSection.style.paddingTop = 'var(--space-md)';
-    actionsSection.style.borderTop = '1px solid var(--color-border-paper)';
+    actionsSection.style.padding = 'var(--space-md) var(--space-lg)';
+    actionsSection.style.background = '#FAF3E0';
+    actionsSection.style.border = '1px solid rgba(215, 163, 173, 0.4)';
+    actionsSection.style.borderRadius = '20px';
 
     const actionsH3 = document.createElement('h3');
     actionsH3.textContent = 'State Controls';
     actionsH3.style.fontFamily = 'var(--font-serif)';
     actionsH3.style.fontSize = 'var(--text-h4-size)';
-    actionsH3.style.color = 'var(--color-burgundy)';
+    actionsH3.style.color = 'var(--color-burgundy-bright)';
     actionsH3.style.marginBottom = 'var(--space-sm)';
     actionsSection.appendChild(actionsH3);
 
@@ -197,7 +230,7 @@ const renderAdminContent = () => {
     actionsHint.className = 'admin-hint';
     actionsHint.textContent = 'Reset the recipient\'s journey back to the welcome stage. Saved wishes, stars, and server records remain intact.';
     actionsHint.style.marginBottom = 'var(--space-sm)';
-    actionsHint.style.color = 'var(--color-burgundy)';
+    actionsHint.style.color = 'var(--color-burgundy-bright)';
     actionsSection.appendChild(actionsHint);
 
     const actionsBtnRow = document.createElement('div');
@@ -212,10 +245,11 @@ const renderAdminContent = () => {
     resetProgressBtn.className = 'btn btn--primary btn--lg';
     resetProgressBtn.id = 'admin-reset-progress';
     resetProgressBtn.textContent = 'Reset Progress';
+    resetProgressBtn.style.borderRadius = '999px';
+    resetProgressBtn.style.padding = '10px 24px';
     actionsBtnRow.appendChild(resetProgressBtn);
 
     actionsSection.appendChild(actionsBtnRow);
-    stage.appendChild(actionsSection);
 
     container.appendChild(stage);
 
@@ -258,7 +292,10 @@ const renderAdminContent = () => {
             try {
                 const resp = await fetch(`${WISHES_API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
                 const data = await resp.json();
-                if (resp.ok && data.ok) {
+                // The server returns { ok: true, deleted: true/false } —
+                // `ok` is always true, so a not-found record would otherwise
+                // look like a successful deletion. Check `deleted` explicitly.
+                if (resp.ok && data.ok && data.deleted) {
                     setStatus(`Wish #${id} deleted.`);
                     fetchSubmissions();
                 } else {
@@ -275,7 +312,10 @@ const renderAdminContent = () => {
             try {
                 const resp = await fetch(`${STARS_API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
                 const data = await resp.json();
-                if (resp.ok && data.ok) {
+                // The server returns { ok: true, deleted: true/false } —
+                // `ok` is always true, so a not-found record would otherwise
+                // look like a successful deletion. Check `deleted` explicitly.
+                if (resp.ok && data.ok && data.deleted) {
                     setStatus(`Star #${id} deleted.`);
                     fetchSubmissions();
                 } else {
@@ -294,7 +334,15 @@ const renderAdminContent = () => {
             const hasStars = Array.isArray(stars) && stars.length > 0;
 
             if (!hasWishes && !hasStars) {
-                listEl.innerHTML = '<p class="admin-submissions-empty" style="color:var(--color-burgundy);opacity:0.8;">No submissions recorded yet.</p>';
+                listEl.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-md);background:#FFFBEF;border-radius:16px;border:1px solid rgba(215, 163, 173, 0.3);">
+                        <div style="width:40px;height:40px;border-radius:50%;background:#8B5A6B;color:#FAF3E0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0;">R</div>
+                        <div>
+                            <div style="font-weight:600;color:#3D2B1F;font-size:0.95rem;">Rumi</div>
+                            <p class="admin-submissions-empty" style="color:#6B525E;margin:2px 0 0;font-size:0.85rem;">No submissions recorded yet.</p>
+                        </div>
+                    </div>
+                `;
                 return;
             }
 
@@ -312,13 +360,14 @@ const renderAdminContent = () => {
                     row.style.boxShadow = 'var(--shadow-xs)';
 
                     row.innerHTML = `
-                        <div class="admin-submission__meta" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-xs);margin-bottom:var(--space-3xs);flex-wrap:wrap;">
-                            <span class="status-pill" style="font-size:0.65rem;padding:2px 10px;background:var(--color-dusty-pink);color:var(--color-burgundy);border-radius:var(--radius-full);">Wish ✨</span>
-                            <span class="admin-submission__id" style="font-family:var(--font-sans);font-size:0.7rem;font-weight:700;color:var(--color-pink-violet);">#${escapeHtml(w.id)}</span>
-                            <span class="admin-submission__time" style="font-family:var(--font-sans);font-size:0.7rem;color:var(--color-burgundy);opacity:0.75;">${escapeHtml(formatTimestamp(w.created_at))}</span>
-                            <button type="button" class="btn btn--secondary btn--sm admin-delete-item-btn" style="padding:2px 8px;font-size:0.7rem;margin-left:auto;">Delete Wish</button>
+                        <div class="admin-submission__meta" style="display:flex;align-items:center;gap:var(--space-xs);margin-bottom:var(--space-2xs);flex-wrap:wrap;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#8B5A6B;color:#FAF3E0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">R</div>
+                            <span class="status-pill" style="font-size:0.65rem;padding:2px 10px;background:#D7A3AD;color:#3D2B1F;border-radius:999px;font-weight:600;">Wish ✨</span>
+                            <span class="admin-submission__id" style="font-family:var(--font-sans);font-size:0.75rem;font-weight:700;color:#8B5A6B;">#${escapeHtml(w.id)}</span>
+                            <span class="admin-submission__time" style="font-family:var(--font-sans);font-size:0.75rem;color:#6B525E;margin-left:auto;">${escapeHtml(formatTimestamp(w.created_at))}</span>
+                            <button type="button" class="btn btn--secondary btn--sm admin-delete-item-btn" style="padding:3px 10px;font-size:0.7rem;border-radius:999px;">Delete Wish</button>
                         </div>
-                        <p class="admin-submission__text" style="font-family:var(--font-sans);font-size:var(--text-small-size);line-height:1.5;color:var(--color-burgundy);margin:0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(w.wish)}</p>
+                        <p class="admin-submission__text" style="font-family:var(--font-sans);font-size:var(--text-small-size);line-height:1.5;color:#3D2B1F;margin:4px 0 0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(w.wish)}</p>
                     `;
 
                     const delBtn = row.querySelector('.admin-delete-item-btn');
@@ -341,13 +390,14 @@ const renderAdminContent = () => {
                     row.style.boxShadow = 'var(--shadow-xs)';
 
                     row.innerHTML = `
-                        <div class="admin-submission__meta" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-xs);margin-bottom:var(--space-3xs);flex-wrap:wrap;">
-                            <span class="status-pill" style="font-size:0.65rem;padding:2px 10px;background:var(--color-gold);color:var(--color-burgundy);border-radius:var(--radius-full);">Star 🌟</span>
-                            <span class="admin-submission__id" style="font-family:var(--font-sans);font-size:0.7rem;font-weight:700;color:var(--color-pink-violet);">#${escapeHtml(s.id)}</span>
-                            <span class="admin-submission__time" style="font-family:var(--font-sans);font-size:0.7rem;color:var(--color-burgundy);opacity:0.75;">${escapeHtml(formatTimestamp(s.created_at))}</span>
-                            <button type="button" class="btn btn--secondary btn--sm admin-delete-item-btn" style="padding:2px 8px;font-size:0.7rem;margin-left:auto;">Delete Star</button>
+                        <div class="admin-submission__meta" style="display:flex;align-items:center;gap:var(--space-xs);margin-bottom:var(--space-2xs);flex-wrap:wrap;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#8B5A6B;color:#FAF3E0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">R</div>
+                            <span class="status-pill" style="font-size:0.65rem;padding:2px 10px;background:#D4AF7F;color:#3D2B1F;border-radius:999px;font-weight:600;">Star 🌟</span>
+                            <span class="admin-submission__id" style="font-family:var(--font-sans);font-size:0.75rem;font-weight:700;color:#8B5A6B;">#${escapeHtml(s.id)}</span>
+                            <span class="admin-submission__time" style="font-family:var(--font-sans);font-size:0.75rem;color:#6B525E;margin-left:auto;">${escapeHtml(formatTimestamp(s.created_at))}</span>
+                            <button type="button" class="btn btn--secondary btn--sm admin-delete-item-btn" style="padding:3px 10px;font-size:0.7rem;border-radius:999px;">Delete Star</button>
                         </div>
-                        <p class="admin-submission__text" style="font-family:var(--font-sans);font-size:var(--text-small-size);line-height:1.5;color:var(--color-burgundy);margin:0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(s.message)}</p>
+                        <p class="admin-submission__text" style="font-family:var(--font-sans);font-size:var(--text-small-size);line-height:1.5;color:#3D2B1F;margin:4px 0 0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(s.message)}</p>
                     `;
 
                     const delBtn = row.querySelector('.admin-delete-item-btn');

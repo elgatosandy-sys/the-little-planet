@@ -227,15 +227,15 @@
   font-family: var(--font-serif);
   font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 600;
-  color: var(--color-gold);
+  color: var(--color-burgundy-bright);
   letter-spacing: 0.04em;
-  text-shadow: 0 0 18px rgba(212, 175, 127, 0.65), 0 0 32px rgba(212, 175, 127, 0.35);
+  text-shadow: 0 0 18px rgba(139, 90, 107, 0.45), 0 0 32px rgba(139, 90, 107, 0.25);
 }
 
 .reveal-line--2 {
   font-family: var(--font-sans);
   font-size: var(--text-body-size);
-  color: var(--color-warm-cream);
+  color: #FFF8E7;
   opacity: 1;
   font-weight: 500;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
@@ -252,8 +252,8 @@
   font-size: clamp(2.25rem, 5vw, 3.5rem);
   font-weight: 500;
   line-height: 1.15;
-  color: var(--color-gold);
-  text-shadow: 0 0 16px rgba(212, 175, 127, 0.4);
+  color: var(--color-burgundy-bright);
+  text-shadow: 0 0 16px rgba(139, 90, 107, 0.4);
 }
 
 .reveal-line--4 {
@@ -310,10 +310,10 @@
 .wish-title {
   font-family: var(--font-serif);
   font-size: clamp(1.9rem, 4.5vw, 2.9rem);
-  color: var(--color-gold);
+  color: #FFF8E7;
   font-weight: 500;
   margin-bottom: var(--space-2xs);
-  text-shadow: 0 0 16px rgba(212, 175, 127, 0.35);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
 .wish-subtitle {
@@ -341,18 +341,21 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 440px;
+  width: auto;
+  max-width: 100%;
   margin: 0 auto;
 }
 
 /* "Make a Wish ✨" button — elegant, compact proportions (not a full-width block) */
 .wish-prompt-btn {
   width: auto;
-  min-width: 240px;
-  max-width: 320px;
-  padding: 0.7rem 1.6rem;
-  font-size: 1.05rem;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.4rem;
+  font-size: 1rem;
   letter-spacing: 0.02em;
 }
 
@@ -470,8 +473,8 @@
 .wish-label {
   font-family: var(--font-sans);
   font-size: var(--text-small-size);
-  color: var(--text-main);
-  opacity: 0.9;
+  color: var(--color-burgundy-bright);
+  opacity: 0.95;
 }
 
 .wish-textarea {
@@ -561,15 +564,17 @@
 .wish-outcome-title {
   font-family: var(--font-serif);
   font-size: var(--text-h3-size);
-  color: var(--color-gold);
+  color: var(--color-burgundy-bright);
   margin-bottom: var(--space-2xs);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .wish-outcome-line {
   font-family: var(--font-sans);
   font-size: var(--text-body-size);
-  color: var(--color-warm-cream);
+  color: #FFF8E7;
   margin-bottom: var(--space-2xs);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .wish-outcome-line:last-child {
@@ -772,17 +777,18 @@
 .planet-headline {
   font-family: var(--font-serif);
   font-size: clamp(1.8rem, 4vw, 2.75rem);
-  color: var(--color-gold);
+  color: var(--color-burgundy-bright);
   font-weight: 500;
   margin-bottom: var(--space-2xs);
-  text-shadow: 0 0 16px rgba(212, 175, 127, 0.35);
+  text-shadow: 0 0 12px rgba(139, 90, 107, 0.45), 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .planet-subline {
   font-family: var(--font-sans);
   font-size: var(--text-body-size);
-  color: var(--color-text-on-dark);
+  color: #FFF8E7;
   opacity: 0.95;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 /* ============================================================
@@ -1216,106 +1222,73 @@
 .museum-spotlight-beam--left  { left: 60px; }
 .museum-spotlight-beam--right { right: 60px; }
 
-/* Stand wrapper for 2D-facing exhibit items */
-.museum-stand-wrap {
+/* Exhibit illustration container — floats cleanly inside the card with no stands or platforms */
+.museum-illo-container {
   position: relative;
   width: 100%;
-  height: 200px;
+  max-width: 200px;
+  min-height: 160px;
+  margin: var(--space-md) auto var(--space-xs) auto;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  z-index: 2;
-}
-
-/* Pedestal stands (2) */
-.museum-stand {
-  position: absolute;
-  bottom: 0;
-  width: 60px;
-  height: 90px;
-  background: linear-gradient(180deg, var(--accent-heading), var(--accent-heading));
-  border-radius: 4px 4px 0 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.museum-stand--1 { left: 28%; }
-.museum-stand--2 { right: 28%; }
-
-/* Platforms (2) for 2D items */
-.museum-platform {
-  position: absolute;
-  bottom: 84px;
-  width: 90px;
-  height: 14px;
-  background: linear-gradient(180deg, var(--accent-heading), var(--accent-heading));
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 3;
-}
-.museum-platform--1 { left: 24%; }
-.museum-platform--2 { right: 24%; }
-
-/* Exhibit illustration inside the stand/platform scene */
-.museum-illo-container {
-  position: absolute;
-  bottom: 98px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  height: 120px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   z-index: 4;
 }
 .museum-illo-container svg {
   width: auto;
-  max-height: 220px;
+  max-height: 180px;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
 }
 
-/* Classification plaque */
+/* Classification plaque — warm off-white/cream with soft text-shadow for high contrast against dark museum background */
 .museum-exhibit-class {
   font-family: var(--font-hand);
   font-size: var(--text-small-size);
-  color: var(--text-main);
+  color: #E8B4B8 !important;
   font-style: italic;
-  margin: var(--space-3xs) 0 0;
+  margin: var(--space-xs) 0 var(--space-xs);
   text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  opacity: 1 !important;
 }
 
-/* Bella "10/10 good girl" stamp — light cream speech-bubble tag,
-   tilted oblique to the right, positioned above-right of the puppy's head */
+/* Bella "10/10 good girl" stamp — compact light cream speech-bubble tag,
+   positioned directly above the puppy's head with a pointer tail pointing down */
 .museum-stamp {
   font-family: var(--font-hand);
-  font-size: 1.05rem;
-  color: var(--accent-heading);
-  border: 2px solid var(--accent-heading);
-  border-radius: 14px;
-  padding: 6px 14px 6px 12px;
-  transform: rotate(10deg);
-  opacity: 0.97;
-  background: var(--bg-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3D2B1F;
+  border: 1px solid #F5E8D8;
+  border-radius: 12px;
+  padding: 3px 8px;
+  transform: rotate(8deg);
+  opacity: 0.98;
+  background: #FAF3E0;
   white-space: nowrap;
   z-index: 6;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
-/* Speech-bubble tail — points down-left toward the dog's head */
+/* Speech-bubble tail — points straight down toward the puppy's head */
 .museum-stamp::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  left: -4px;
+  bottom: -5px;
+  left: 14px;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 8px 10px 8px 0;
-  border-color: transparent var(--bg-primary) transparent transparent;
-  transform: rotate(10deg);
-  filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.1));
+  border-width: 5px 4px 0 4px;
+  border-color: #FAF3E0 transparent transparent transparent;
+  transform: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
 }
 
 /* Museum exhibit title — dark stone for legibility on light background */
@@ -1405,53 +1378,15 @@
 .museum-spotlight-beam--left  { left: 60px; }
 .museum-spotlight-beam--right { right: 60px; }
 
-/* Stand wrapper for 2D-facing exhibit items */
-.museum-stand-wrap {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  z-index: 2;
-}
-
-/* Pedestal stands (2) */
-.museum-stand {
-  position: absolute;
-  bottom: 0;
-  width: 60px;
-  height: 90px;
-  background: linear-gradient(180deg, var(--accent-heading), var(--text-main));
-  border-radius: 4px 4px 0 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-.museum-stand--1 { left: 28%; }
-.museum-stand--2 { right: 28%; }
-
-/* Platforms (2) for 2D items */
-.museum-platform {
-  position: absolute;
-  bottom: 84px;
-  width: 90px;
-  height: 14px;
-  background: linear-gradient(180deg, var(--accent-salmon), var(--accent-salmon));
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  z-index: 3;
-}
-.museum-platform--1 { left: 24%; }
-.museum-platform--2 { right: 24%; }
-
-/* Classification plaque */
 .museum-exhibit-class {
   font-family: var(--font-hand);
   font-size: var(--text-small-size);
-  color: var(--color-gold);
+  color: #E8B4B8 !important;
   font-style: italic;
-  margin: var(--space-3xs) 0 0;
+  margin: var(--space-xs) 0 var(--space-xs);
   text-align: center;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  opacity: 1 !important;
 }
 
 /* Museum exhibit title — bright cream/pink for legibility on dark background */
@@ -1475,11 +1410,11 @@
   opacity: 0.95;
 }
 
-/* Museum tag — bright gold */
+/* Museum tag — bright cream for legibility on dark background */
 .museum-tag {
   font-family: var(--font-hand);
   font-size: var(--text-small-size);
-  color: var(--color-gold);
+  color: #FFF8E7;
   margin-bottom: var(--space-xs);
   display: block;
   text-align: center;
@@ -1550,9 +1485,12 @@
 .museum-exhibit-class {
   font-family: var(--font-hand);
   font-size: var(--text-small-size);
-  color: var(--text-main);
+  color: #E8B4B8 !important;
   font-style: italic;
-  margin: 0;
+  margin: var(--space-xs) 0 var(--space-xs);
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  opacity: 1 !important;
 }
 
 .museum-controls {
@@ -1629,16 +1567,22 @@
   display: flex;
   gap: var(--space-sm);
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .confirm-actions .btn {
-  min-width: 120px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .confirm-cancel {
   background: transparent;
   border: 1px solid var(--accent-pink);
-  color: var(--text-main);
+  color: var(--color-burgundy-bright);
 }
 
 .confirm-cancel:hover {
@@ -1772,6 +1716,12 @@
   color: var(--color-text-disabled);
   font-size: var(--text-small-size);
   line-height: var(--text-small-line);
+}
+
+/* Hide footer on admin page */
+.page--cosmic:has(.stage-admin) ~ .page-footer,
+body:has(.stage-admin) .page-footer {
+  display: none !important;
 }
 
 /* ============================================================
@@ -1974,7 +1924,7 @@
   font-family: var(--font-serif);
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-burgundy);
+  color: var(--color-burgundy-bright);
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
 }
 
@@ -2026,7 +1976,7 @@
   font-family: var(--font-sans);
   font-size: 0.9rem;
   line-height: 1.5;
-  color: var(--color-burgundy);
+  color: var(--color-burgundy-bright);
   text-align: left;
 }
 
@@ -2321,19 +2271,19 @@
   justify-content: center;
 }
 
-/* The actual star dot — bright glowing white-gold celestial point */
+/* The actual star dot — pure glowing white celestial point */
 .libra-star::before {
   content: '';
   position: absolute;
   width: 9px;
   height: 9px;
-  background: radial-gradient(circle at 35% 30%, #FFFBEF, var(--color-gold) 60%, #B8894F);
+  background: radial-gradient(circle at 35% 30%, #FFFFFF, #FFFFFF 40%, #F4F4F4 70%, #D4AF7F 100%);
   border-radius: 50%;
   box-shadow:
-    0 0 4px #FFFBEF,
-    0 0 10px rgba(255, 251, 239, 0.9),
-    0 0 18px rgba(212, 175, 127, 0.75),
-    0 0 32px rgba(212, 175, 127, 0.45);
+    0 0 4px #FFFFFF,
+    0 0 10px #FFFFFF,
+    0 0 18px rgba(255, 255, 255, 0.95),
+    0 0 32px rgba(255, 255, 255, 0.7);
   transition: all 0.3s var(--ease-gentle);
   animation: libra-star-pulse 3s ease-in-out infinite;
 }
@@ -2342,17 +2292,17 @@
 @keyframes libra-star-pulse {
   0%, 100% {
     box-shadow:
-      0 0 4px #FFFBEF,
-      0 0 10px rgba(255, 251, 239, 0.9),
-      0 0 18px rgba(212, 175, 127, 0.75),
-      0 0 32px rgba(212, 175, 127, 0.45);
+      0 0 4px #FFFFFF,
+      0 0 10px #FFFFFF,
+      0 0 18px rgba(255, 255, 255, 0.95),
+      0 0 32px rgba(255, 255, 255, 0.7);
   }
   50% {
     box-shadow:
-      0 0 4px #FFFBEF,
-      0 0 14px rgba(255, 251, 239, 1),
-      0 0 24px rgba(212, 175, 127, 0.85),
-      0 0 44px rgba(212, 175, 127, 0.55);
+      0 0 4px #FFFFFF,
+      0 0 14px #FFFFFF,
+      0 0 24px rgba(255, 255, 255, 1),
+      0 0 44px rgba(255, 255, 255, 0.8);
   }
 }
 
@@ -2360,12 +2310,12 @@
   font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--color-burgundy);
+  color: var(--color-burgundy-bright);
   line-height: 1;
   text-shadow: none;
   pointer-events: none;
   user-select: none;
-  background: radial-gradient(circle at 50% 0%, #FFFBEF, var(--color-warm-cream) 70%);
+  background: radial-gradient(circle at 50% 0%, #FFFFFF, var(--color-warm-cream) 70%);
   border: 1px solid var(--color-gold);
   border-radius: 50%;
   width: 26px;
@@ -2374,18 +2324,18 @@
   align-items: center;
   justify-content: center;
   margin: -13px 0 0 -13px;
-  box-shadow: 0 0 8px rgba(212, 175, 127, 0.5), 0 0 16px rgba(212, 175, 127, 0.3);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 0 0 16px rgba(255, 255, 255, 0.4);
 }
 
 .libra-star.is-active::before {
   transform: scale(2.2);
-  background: var(--color-gold);
-  box-shadow: 0 0 12px rgba(212, 175, 127, 0.7), 0 0 22px rgba(212, 175, 127, 0.35);
+  background: #FFFFFF;
+  box-shadow: 0 0 12px #FFFFFF, 0 0 22px rgba(255, 255, 255, 0.9);
 }
 
 .libra-star.is-connected::before {
-  background: var(--color-gold);
-  box-shadow: 0 0 10px rgba(212, 175, 127, 0.75), 0 0 18px rgba(212, 175, 127, 0.4);
+  background: #FFFFFF;
+  box-shadow: 0 0 10px #FFFFFF, 0 0 18px rgba(255, 255, 255, 0.9);
 }
 
 .libra-star.is-connected .libra-star__number {
@@ -2394,36 +2344,31 @@
   background: #FFFFFF;
 }
 
-/* Glowing trail during drag */
-.libra-line-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 5;
-}
-
+/* Glowing trail during drag — thin, elegant, semi-transparent warm starlight.
+   Deliberately softer than the crisp white star nodes so the lines read as
+   faint connections, not thick yellow bars. */
 .libra-line-layer .active-trail {
-  stroke: var(--color-gold);
-  stroke-width: 2.5;
+  stroke: rgba(255, 248, 231, 0.55);
+  stroke-width: 1.5;
   fill: none;
-  filter: drop-shadow(0 0 6px rgba(212, 175, 127, 0.5));
+  filter: drop-shadow(0 0 4px rgba(255, 248, 231, 0.35));
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .libra-line-layer .locked-line {
-  stroke: var(--color-gold);
-  stroke-width: 2;
+  stroke: rgba(255, 248, 231, 0.5);
+  stroke-width: 1.5;
   fill: none;
-  filter: drop-shadow(0 0 8px rgba(212, 175, 127, 0.5));
+  filter: drop-shadow(0 0 4px rgba(255, 248, 231, 0.3));
   stroke-linecap: round;
   stroke-linejoin: round;
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
 @keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(212, 175, 127, 0.5)); opacity: 1; }
-  50% { filter: drop-shadow(0 0 16px rgba(212, 175, 127, 0.7)); opacity: 0.9; }
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 248, 231, 0.3)); opacity: 1; }
+  50% { filter: drop-shadow(0 0 8px rgba(255, 248, 231, 0.45)); opacity: 0.9; }
 }
 
 .libra-instruction {
@@ -2436,29 +2381,35 @@
 
 .libra-controls {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
   gap: var(--space-sm);
   margin-top: var(--space-lg);
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
+  width: 100%;
 }
 
 .libra-controls .btn {
-  min-width: 120px;
-  padding: 0.75rem 1.5rem;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 110px;
+  padding: 0.75rem 1.25rem;
   font-size: var(--text-body-size);
   min-height: 48px;
+  white-space: nowrap;
 }
 
 /* Constellation label */
 .libra-constellation-label {
   font-family: var(--font-serif);
   font-size: 1.8rem;
-  color: var(--color-gold);
+  color: #FFF8E7;
   font-weight: 500;
   margin: var(--space-md) 0 var(--space-xs);
   letter-spacing: 2px;
-  text-shadow: 0 0 12px rgba(212, 175, 127, 0.35);
+  text-shadow: 0 0 12px rgba(255, 248, 231, 0.35);
 }
 
 /* Completion container — hidden until puzzle is solved */
@@ -2790,7 +2741,7 @@
 .wonders-completion {
   margin-top: var(--space-lg);
   font-family: var(--font-hand);
-  color: var(--text-main);
+  color: var(--color-burgundy-bright);
   font-size: 1.2rem;
   animation: fade-in 0.5s ease;
 }
@@ -2957,20 +2908,20 @@
 .note-title {
   font-family: var(--font-serif);
   font-size: clamp(2rem, 5vw, 2.75rem);
-  color: var(--color-gold);
+  color: var(--color-burgundy-bright);
   font-weight: 500;
   margin: 0 0 var(--space-xs);
   text-align: center;
   position: relative;
   z-index: 2;
-  text-shadow: 0 0 16px rgba(212, 175, 127, 0.4);
+  text-shadow: none;
 }
 
 .note-subtitle {
   font-family: var(--font-sans);
   font-size: var(--text-body-size);
-  color: var(--color-warm-cream);
-  opacity: 0.95;
+  color: var(--color-burgundy-bright);
+  opacity: 0.85;
   margin: 0 0 var(--space-md);
   text-align: center;
   position: relative;
@@ -2980,7 +2931,7 @@
 .note-question {
   font-family: var(--font-serif);
   font-size: 1.05rem;
-  color: var(--color-gold);
+  color: var(--color-burgundy-bright);
   margin: 0 0 var(--space-md);
   text-align: center;
   font-style: italic;
@@ -3029,21 +2980,25 @@
 .note-char-counter {
   font-family: var(--font-sans);
   font-size: var(--text-small-size);
-  color: var(--color-warm-cream);
-  opacity: 0.9;
+  color: var(--color-burgundy);
+  opacity: 0.7;
   text-align: right;
   margin: 0;
 }
 
 .note-char-counter.is-max {
   opacity: 1;
-  color: var(--color-gold);
+  color: var(--accent-cta);
   font-weight: 600;
 }
 
 .note-submit-btn {
-  width: 100%;
-  margin-top: var(--space-sm);
+  width: auto;
+  max-width: 100%;
+  margin: var(--space-sm) auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
@@ -3068,8 +3023,8 @@
 
 .note-success-star {
   font-size: 3rem;
-  color: var(--text-main);
-  text-shadow: 0 0 20px rgba(121, 101, 114, 0.3);
+  color: var(--color-burgundy-bright);
+  text-shadow: 0 0 20px rgba(139, 90, 107, 0.45);
   animation: star-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both,
              pulse 2s ease-in-out 0.7s infinite;
 }
@@ -3090,13 +3045,18 @@
 .note-success-text {
   font-family: var(--font-sans);
   font-size: 1.15rem;
-  color: var(--text-main);
+  color: var(--color-burgundy-bright);
   margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .note-proceed-btn {
-  width: 100%;
-  margin-top: var(--space-sm);
+  width: auto;
+  max-width: 100%;
+  margin: var(--space-sm) auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
@@ -3289,6 +3249,26 @@
 
 .her-planet-para.is-pending {
   opacity: 0;
+}
+
+/* "Next" button on Stage 10 — disabled until the final paragraph has faded in,
+   then revealed with a gentle fade so it feels earned, not tacked on. */
+.her-planet-proceed {
+  opacity: 0;
+  pointer-events: none;
+  width: auto;
+  max-width: 100%;
+  margin: var(--space-md) auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease, box-shadow 0.3s ease;
+}
+
+.her-planet-proceed.is-enabled {
+  opacity: 1;
+  pointer-events: auto;
+  box-shadow: 0 6px 24px rgba(255, 127, 80, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3514,7 +3494,7 @@
   font-family: var(--font-serif);
   font-size: 1.5rem;
   margin-bottom: var(--space-md);
-  color: var(--text-main);
+  color: var(--color-text-primary-bright);
   font-weight: 500;
 }
 
@@ -3523,7 +3503,7 @@
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: var(--space-xs);
-  color: var(--text-main);
+  color: var(--color-text-primary-bright);
 }
 
 .admin-btn-row {
@@ -3537,7 +3517,7 @@
 .admin-hint {
   font-family: var(--font-sans);
   font-size: var(--text-small-size);
-  color: var(--text-main);
+  color: var(--color-text-primary-bright);
   margin-bottom: var(--space-xs);
 }
 
@@ -3670,7 +3650,7 @@
 .admin-breakdown__value {
   font-family: var(--font-serif);
   font-size: 1.1rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-primary-bright);
   margin-top: 2px;
 }
 
@@ -3693,14 +3673,19 @@
   font-family: var(--font-serif);
   font-size: var(--text-h4-size);
   font-weight: 500;
-  color: var(--color-burgundy);
+  color: var(--color-burgundy-bright);
   margin-bottom: var(--space-sm);
   text-align: left;
 }
 
 .admin-btn-row .btn {
-  flex: 1 1 auto;
-  min-width: 120px;
+  width: 85%;
+  max-width: 240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
 }
 
 
