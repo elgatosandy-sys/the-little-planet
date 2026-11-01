@@ -42,10 +42,15 @@ const ROOT_DIR = resolve(__dirname, '..');
 // Data lives UNDER the server module dir, outside the served tree, so
 // neither the SQLite file nor the admin key can be fetched via http.
 const DATA_DIR = resolve(__dirname, 'data');
-// DB location is overridable (used by the test suite for isolation).
+// DB location is overridable (used by thetest suite for isolation).
+// On Vercel the task filesystem is read-only, so the default must point
+// somewhere writable. /tmp is writable per invocation; data will not
+// survive cold starts, but submissions succeed instead of failing.
 const DB_PATH = process.env.LITTLE_PLANET_DB_PATH
     ? resolve(process.env.LITTLE_PLANET_DB_PATH)
-    : resolve(DATA_DIR, 'wishes.db');
+    : process.env.VERCEL
+        ? resolve('/tmp', 'the-little-planet.db')
+        : resolve(DATA_DIR, 'wishes.db');
 const KEY_FILE = resolve(DATA_DIR, 'admin.key');
 const STATIC_DIR = ROOT_DIR;
 
@@ -82,7 +87,10 @@ let db = null;
 let adminKey = loadAdminKey();
 
 function initDatabase() {
-    mkdirSync(DATA_DIR, { recursive: true });
+    // Create the directory for the *actual* DB path, not the static
+    // DATA_DIR — on Vercel the task dir is read-only, so the DB must
+    // live somewhere writable (e.g. /tmp via LITTLE_PLANET_DB_PATH).
+    mkdirSync(dirname(DB_PATH), { recursive: true });
     db = new DatabaseSync(DB_PATH);
     db.exec('PRAGMA journal_mode = WAL;');
     db.exec(`
@@ -656,29 +664,34 @@ function serveStatic(req, res, url) {
 // ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
+// The raw request handler, separated from the http.Server wrapper so the
+// Vercel function (api/index.mjs) can call it directly without standing
+// up a socket listener.
+async function handleRequest(req, res) {
+    let url;
+    try {
+        url = new URL(req.url, 'http://localhost');
+    } catch {
+        publicError(res, 400, 'Bad request.');
+        return;
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    try {
+        if (url.pathname.startsWith('/api/')) {
+            await handleApi(req, res, url);
+        } else if (req.method === 'GET' || req.method === 'HEAD') {
+            serveStatic(req, res, url);
+        } else {
+            publicError(res, 405, 'Method not allowed.');
+        }
+    } catch (err) {
+        console.error('Request error:', err);
+        publicError(res, 500, 'Something hiccupped. Please try again.');
+    }
+}
+
 function createAppServer(options) {
-    return createServer(async (req, res) => {
-        let url;
-        try {
-            url = new URL(req.url, 'http://localhost');
-        } catch {
-            publicError(res, 400, 'Bad request.');
-            return;
-        }
-        res.setHeader('Cache-Control', 'no-store');
-        try {
-            if (url.pathname.startsWith('/api/')) {
-                await handleApi(req, res, url);
-            } else if (req.method === 'GET' || req.method === 'HEAD') {
-                serveStatic(req, res, url);
-            } else {
-                publicError(res, 405, 'Method not allowed.');
-            }
-        } catch (err) {
-            console.error('Request error:', err);
-            publicError(res, 500, 'Something hiccupped. Please try again.');
-        }
-    });
+    return createServer(handleRequest);
 }
 
 function listen(server, port, host) {
@@ -721,4 +734,4 @@ if (isDirectRun) {
     });
 }
 
-export { createAppServer, initDatabase, listen, closeApp, loadAdminKey, adminKey, DB_PATH };
+export { createAppServer, handleRequest, initDatabase, listen, closeApp, loadAdminKey, adminKey, DB_PATH };

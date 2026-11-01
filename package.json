@@ -9,7 +9,7 @@
     "start": "node server/index.mjs",
     "build": "echo \"Static site - no build step required\"",
     "lint": "echo \"No linter configured - using standard HTML/CSS/JS validation\"",
-    "test": "node test_runtime.mjs && node test_api.mjs",
+    "test": "node test_runtime.mjs && node test_api.mjs && node test_function.mjs",
     "test:runtime": "node test_runtime.mjs",
     "test:api": "node test_api.mjs",
     "read-wishes": "node tools/read-wishes.mjs"
