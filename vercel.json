@@ -3,8 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.mjs",
-      "methods": ["GET", "POST", "DELETE", "PATCH", "PUT", "OPTIONS", "HEAD"]
+      "destination": "/api/index"
     }
   ]
 }

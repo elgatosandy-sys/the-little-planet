@@ -10,7 +10,7 @@ const tmpDir = mkdtempSync(resolve('data') + '-fntest-');
 process.env.LITTLE_PLANET_DB_PATH = resolve(tmpDir, 'fn-wishes.db');
 process.env.LITTLE_PLANET_ADMIN_KEY = '99211';
 
-const fn = (await import(pathToFileURL(resolve('api/index.mjs')).href)).default;
+const fn = (await import(pathToFileURL(resolve('api/index.js')).href)).default;
 
 let passed = 0;
 let failed = 0;
