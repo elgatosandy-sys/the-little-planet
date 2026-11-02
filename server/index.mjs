@@ -37,6 +37,78 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// ---------------------------------------------------------------------------
+// Database backend: Turso remote SQLite when credentials are configured,
+// native node:sqlite otherwise. Both expose the same shape used below
+// (prepare().get/all/run + exec), so the handlers never branch on backend.
+// ---------------------------------------------------------------------------
+let tursoClient = null;
+
+async function tursoExec(sql, args = []) {
+    const res = await tursoClient.execute({ sql, args });
+    return res;
+}
+
+function tursoStatement(sql) {
+    return {
+        get: async (...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return res.rows[0];
+        },
+        all: async (...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return res.rows;
+        },
+        run: async (...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return { changes: res.rowsAffected, lastInsertRowid: res.lastInsertRowid };
+        },
+    };
+}
+
+async function tursoExecMulti(statements) {
+    // libsql execute() only runs one statement; batch() runs many in a
+    // single round-trip and is atomic on Turso.
+    await tursoClient.batch(statements);
+}
+
+// ---------------------------------------------------------------------------
+// Unified async store. Local node:sqlite calls are wrapped to look async so
+// handlers can always `await` regardless of backend.
+// ---------------------------------------------------------------------------
+function makeLocalStore() {
+    // Wrapped in Promise.resolve so handlers can uniformly `await`
+    // regardless of backend (local calls resolve immediately).
+    return {
+        get: (sql, ...args) => Promise.resolve(db.prepare(sql).get(...args)),
+        all: (sql, ...args) => Promise.resolve(db.prepare(sql).all(...args)),
+        run: (sql, ...args) => Promise.resolve(db.prepare(sql).run(...args)),
+        exec: (sql) => Promise.resolve(db.exec(sql)),
+    };
+}
+
+function makeTursoStore() {
+    return {
+        get: async (sql, ...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return res.rows[0];
+        },
+        all: async (sql, ...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return res.rows;
+        },
+        run: async (sql, ...args) => {
+            const res = await tursoClient.execute({ sql, args });
+            return { changes: res.rowsAffected, lastInsertRowid: res.lastInsertRowid };
+        },
+        exec: async (sql) => {
+            await tursoClient.execute({ sql, args: [] });
+        },
+    };
+}
+
+let store = null;
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = resolve(__dirname, '..');
 // Data lives UNDER the server module dir, outside the served tree, so
@@ -86,10 +158,44 @@ let db = null;
 // happens there.
 let adminKey = loadAdminKey();
 
-function initDatabase() {
-    // Create the directory for the *actual* DB path, not the static
-    // DATA_DIR — on Vercel the task dir is read-only, so the DB must
-    // live somewhere writable (e.g. /tmp via LITTLE_PLANET_DB_PATH).
+async function initDatabase() {
+    // Turso remote SQLite takes precedence when credentials are present.
+    // On Vercel this is what makes every cold-start instance share one
+    // database instead of an isolated /tmp file.
+    const tursoUrl = process.env.TURSO_DATABASE_URL || process.env.TURSO_DATABASE_URI;
+    const tursoToken = process.env.TURSO_AUTH_TOKEN;
+    if (tursoUrl && tursoToken) {
+        const { createClient } = await import('@libsql/client');
+        tursoClient = createClient({
+            url: tursoUrl,
+            authToken: tursoToken,
+        });
+        const SCHEMA = [
+            `CREATE TABLE IF NOT EXISTS wishes (
+                id         TEXT PRIMARY KEY,
+                ip_key     TEXT NOT NULL UNIQUE,
+                wish_text  TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );`,
+            `CREATE TABLE IF NOT EXISTS stars (
+                id         TEXT PRIMARY KEY,
+                ip_key     TEXT NOT NULL UNIQUE,
+                message    TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );`,
+            `CREATE TABLE IF NOT EXISTS user_state (
+                session_id TEXT PRIMARY KEY,
+                state_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );`,
+        ];
+        await tursoClient.batch(SCHEMA);
+        store = makeTursoStore();
+        console.log('Database: Turso remote SQLite (' + tursoUrl + ')');
+        return;
+    }
+
+    // Local fallback: native node:sqlite for offline development.
     mkdirSync(dirname(DB_PATH), { recursive: true });
     db = new DatabaseSync(DB_PATH);
     db.exec('PRAGMA journal_mode = WAL;');
@@ -116,6 +222,7 @@ function initDatabase() {
             updated_at TEXT NOT NULL
         );
     `);
+    store = makeLocalStore();
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +327,7 @@ async function handleCreateWish(req, res) {
         return publicError(res, 413, 'Your wish is a little too long — keep it under 1,000 characters. ✨');
     }
 
-    const previous = db.prepare('SELECT id, created_at FROM wishes WHERE ip_key = ?').get(id);
+    const previous = await store.get('SELECT id, created_at FROM wishes WHERE ip_key = ?', id);
     if (previous) {
         return send(res, 200, {
             ok: true,
@@ -234,13 +341,14 @@ async function handleCreateWish(req, res) {
     const recordId = randomUUID();
     const createdAt = new Date().toISOString();
     try {
-        db.prepare(
-            'INSERT INTO wishes (id, ip_key, wish_text, created_at) VALUES (?, ?, ?, ?)'
-        ).run(recordId, id, wish, createdAt);
+        await store.run(
+            'INSERT INTO wishes (id, ip_key, wish_text, created_at) VALUES (?, ?, ?, ?)',
+            recordId, id, wish, createdAt
+        );
     } catch (err) {
         const msg = String((err && err.message) || '');
         if (msg.includes('UNIQUE constraint failed: wishes.ip_key')) {
-            const row = db.prepare('SELECT id, created_at FROM wishes WHERE ip_key = ?').get(id);
+            const row = await store.get('SELECT id, created_at FROM wishes WHERE ip_key = ?', id);
             if (row) {
                 return send(res, 200, {
                     ok: true,
@@ -294,7 +402,7 @@ async function handleCreateStar(req, res) {
         return publicError(res, 413, 'Your message is a little too long — keep it under 1,000 characters. ✨');
     }
 
-    const previous = db.prepare('SELECT id, created_at FROM stars WHERE ip_key = ?').get(id);
+    const previous = await store.get('SELECT id, created_at FROM stars WHERE ip_key = ?', id);
     if (previous) {
         return send(res, 200, {
             ok: true,
@@ -308,13 +416,14 @@ async function handleCreateStar(req, res) {
     const recordId = randomUUID();
     const createdAt = new Date().toISOString();
     try {
-        db.prepare(
-            'INSERT INTO stars (id, ip_key, message, created_at) VALUES (?, ?, ?, ?)'
-        ).run(recordId, id, message, createdAt);
+        await store.run(
+            'INSERT INTO stars (id, ip_key, message, created_at) VALUES (?, ?, ?, ?)',
+            recordId, id, message, createdAt
+        );
     } catch (err) {
         const msg = String((err && err.message) || '');
         if (msg.includes('UNIQUE constraint failed: stars.ip_key')) {
-            const row = db.prepare('SELECT id, created_at FROM stars WHERE ip_key = ?').get(id);
+            const row = await store.get('SELECT id, created_at FROM stars WHERE ip_key = ?', id);
             if (row) {
                 return send(res, 200, {
                     ok: true,
@@ -336,15 +445,13 @@ async function handleCreateStar(req, res) {
 // GET /api/wishes — privileged retrieval. Requires the admin key.
 // No public listing endpoint exists.
 // ---------------------------------------------------------------------------
-function handleReadWishes(req, res, url) {
+async function handleReadWishes(req, res, url) {
     const provided = url.searchParams.get('key') || '';
     if (provided.length === 0 || provided !== adminKey) {
         // Indistinguishable from "no such resource" — no details leak.
         return send(res, 404, { ok: false, message: 'Not found.' });
     }
-    const rows = db
-        .prepare('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC')
-        .all();
+    const rows = await store.all('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC');
     return send(res, 200, {
         ok: true,
         count: rows.length,
@@ -359,10 +466,8 @@ function handleReadWishes(req, res, url) {
 // is no password form, no key prompt, and no session token gate. The route
 // is the gate, so this endpoint no longer validates a token.
 // ---------------------------------------------------------------------------
-function handleAdminReadWishes(req, res, url) {
-    const rows = db
-        .prepare('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC')
-        .all();
+async function handleAdminReadWishes(req, res, url) {
+    const rows = await store.all('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC');
     return send(res, 200, {
         ok: true,
         count: rows.length,
@@ -373,10 +478,8 @@ function handleAdminReadWishes(req, res, url) {
 // ---------------------------------------------------------------------------
 // GET /api/admin/stars — retrieve "piece of you" stars for the admin dashboard.
 // ---------------------------------------------------------------------------
-function handleAdminReadStars(req, res, url) {
-    const rows = db
-        .prepare('SELECT id, message, created_at FROM stars ORDER BY created_at ASC, id ASC')
-        .all();
+async function handleAdminReadStars(req, res, url) {
+    const rows = await store.all('SELECT id, message, created_at FROM stars ORDER BY created_at ASC, id ASC');
     return send(res, 200, {
         ok: true,
         count: rows.length,
@@ -387,12 +490,12 @@ function handleAdminReadStars(req, res, url) {
 // ---------------------------------------------------------------------------
 // DELETE /api/admin/wishes/:id — remove a single wish record by id.
 // ---------------------------------------------------------------------------
-function handleAdminDeleteWish(req, res, url) {
+async function handleAdminDeleteWish(req, res, url) {
     const id = url.pathname.split('/').pop();
     if (!id || id.length > ID_MAX_LEN) {
         return publicError(res, 400, 'That record could not be found.');
     }
-    const result = db.prepare('DELETE FROM wishes WHERE id = ?').run(id);
+    const result = await store.run('DELETE FROM wishes WHERE id = ?', id);
     if (result.changes === 0) {
         return send(res, 200, { ok: true, deleted: false, id });
     }
@@ -402,12 +505,12 @@ function handleAdminDeleteWish(req, res, url) {
 // ---------------------------------------------------------------------------
 // DELETE /api/admin/stars/:id — remove a single star record by id.
 // ---------------------------------------------------------------------------
-function handleAdminDeleteStar(req, res, url) {
+async function handleAdminDeleteStar(req, res, url) {
     const id = url.pathname.split('/').pop();
     if (!id || id.length > ID_MAX_LEN) {
         return publicError(res, 400, 'That record could not be found.');
     }
-    const result = db.prepare('DELETE FROM stars WHERE id = ?').run(id);
+    const result = await store.run('DELETE FROM stars WHERE id = ?', id);
     if (result.changes === 0) {
         return send(res, 200, { ok: true, deleted: false, id });
     }
@@ -420,7 +523,7 @@ function handleAdminDeleteStar(req, res, url) {
 async function handleGetState(req, res, url) {
     const sessionId = url.searchParams.get('session_id') || 'default_user';
     try {
-        const row = db.prepare('SELECT state_json, updated_at FROM user_state WHERE session_id = ?').get(sessionId);
+        const row = await store.get('SELECT state_json, updated_at FROM user_state WHERE session_id = ?', sessionId);
         if (!row) {
             return send(res, 200, { ok: true, state: null });
         }
@@ -449,13 +552,13 @@ async function handleSaveState(req, res) {
     const updatedAt = new Date().toISOString();
 
     try {
-        db.prepare(`
+        await store.run(`
             INSERT INTO user_state (session_id, state_json, updated_at)
             VALUES (?, ?, ?)
             ON CONFLICT(session_id) DO UPDATE SET
                 state_json = excluded.state_json,
                 updated_at = excluded.updated_at
-        `).run(sessionId, stateJson, updatedAt);
+        `, sessionId, stateJson, updatedAt);
         return send(res, 200, { ok: true, saved: true, updated_at: updatedAt });
     } catch (err) {
         console.error('State sync failed:', err);
@@ -469,7 +572,7 @@ async function handleSaveState(req, res) {
 async function handleAdminGetState(req, res, url) {
     const sessionId = url.searchParams.get('session_id') || 'rumi_global_session';
     try {
-        const row = db.prepare('SELECT state_json, updated_at FROM user_state WHERE session_id = ?').get(sessionId);
+        const row = await store.get('SELECT state_json, updated_at FROM user_state WHERE session_id = ?', sessionId);
         if (!row) {
             return send(res, 200, { ok: true, state: null, updated_at: null });
         }
@@ -498,7 +601,7 @@ async function handleAdminSetState(req, res) {
 
     let row;
     try {
-        row = db.prepare('SELECT state_json FROM user_state WHERE session_id = ?').get(sessionId);
+        row = await store.get('SELECT state_json FROM user_state WHERE session_id = ?', sessionId);
     } catch (err) {
         return publicError(res, 500, 'Could not read state');
     }
@@ -559,13 +662,13 @@ async function handleAdminSetState(req, res) {
     const stateJson = JSON.stringify(state);
     const updatedAt = new Date().toISOString();
     try {
-        db.prepare(`
+        await store.run(`
             INSERT INTO user_state (session_id, state_json, updated_at)
             VALUES (?, ?, ?)
             ON CONFLICT(session_id) DO UPDATE SET
                 state_json = excluded.state_json,
                 updated_at = excluded.updated_at
-        `).run(sessionId, stateJson, updatedAt);
+        `, sessionId, stateJson, updatedAt);
         return send(res, 200, { ok: true, action, targetStage: targetStage || null, updated_at: updatedAt, state });
     } catch (err) {
         console.error('Admin state update failed:', err);
@@ -714,6 +817,15 @@ function closeApp() {
         }
         db = null;
     }
+    if (tursoClient) {
+        try {
+            tursoClient.close();
+        } catch {
+            /* already closed */
+        }
+        tursoClient = null;
+    }
+    store = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -722,7 +834,7 @@ function closeApp() {
 const isDirectRun = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isDirectRun) {
     adminKey = loadAdminKey();
-    initDatabase();
+    await initDatabase();
     const server = createAppServer();
     listen(server, PORT, '127.0.0.1').then((boundPort) => {
         console.log('The Little Planet server running: http://localhost:' + boundPort);

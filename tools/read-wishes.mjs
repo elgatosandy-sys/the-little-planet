@@ -16,7 +16,6 @@
  * reveals whether wishes exist.
  */
 
-import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,23 +50,44 @@ if (!adminKey) {
     process.exit(1);
 }
 
-const db = new DatabaseSync(DB_PATH, { readOnly: true });
-try {
-    const rows = db
-        .prepare('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC')
-        .all();
-    if (rows.length === 0) {
-        console.log('No wishes saved yet.');
-        process.exit(0);
-    }
-    console.log(rows.length + ' saved wish(es):\n');
-    rows.forEach((r, i) => {
-        console.log('---');
-        console.log('id:         ' + r.id);
-        console.log('saved:      ' + r.created_at);
-        console.log('wish:       ' + r.wish_text);
-        if (i !== rows.length - 1) console.log('');
-    });
-} finally {
-    db.close();
+// When Turso credentials are configured, read from the remote database so
+// the tool reflects what every Vercel instance sees. Otherwise fall back
+// to the local node:sqlite file used by `npm start`.
+const tursoUrl = process.env.TURSO_DATABASE_URL || process.env.TURSO_DATABASE_URI;
+const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+async function readTurso() {
+    const { createClient } = await import('@libsql/client');
+    const client = createClient({ url: tursoUrl, authToken: tursoToken });
+    const res = await client.execute(
+        'SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC'
+    );
+    return res.rows;
 }
+
+async function readLocal() {
+    const { DatabaseSync } = await import('node:sqlite');
+    const db = new DatabaseSync(DB_PATH, { readOnly: true });
+    try {
+        return db
+            .prepare('SELECT id, wish_text, created_at FROM wishes ORDER BY created_at ASC, id ASC')
+            .all();
+    } finally {
+        db.close();
+    }
+}
+
+const rows = tursoUrl && tursoToken ? await readTurso() : await readLocal();
+
+if (rows.length === 0) {
+    console.log('No wishes saved yet.');
+    process.exit(0);
+}
+console.log(rows.length + ' saved wish(es):\n');
+rows.forEach((r, i) => {
+    console.log('---');
+    console.log('id:         ' + r.id);
+    console.log('saved:      ' + r.created_at);
+    console.log('wish:       ' + r.wish_text);
+    if (i !== rows.length - 1) console.log('');
+});

@@ -15,15 +15,15 @@ import { handleRequest, initDatabase } from '../server/index.mjs';
 
 let initialized = false;
 
-function ensureInitialized() {
+async function ensureInitialized() {
     if (initialized) return;
-    initDatabase();
+    await initDatabase();
     initialized = true;
 }
 
 export default async function handler(req, res) {
     try {
-        ensureInitialized();
+        await ensureInitialized();
 
         // If req is a Web Standard Request object (e.g. from fetch / Edge), convert headers/url/body.
         let incomingReq = req;

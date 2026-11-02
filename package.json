@@ -14,10 +14,19 @@
     "test:api": "node test_api.mjs",
     "read-wishes": "node tools/read-wishes.mjs"
   },
-  "keywords": ["birthday", "sweet-16", "interactive", "storybook", "vanilla-js"],
+  "keywords": [
+    "birthday",
+    "sweet-16",
+    "interactive",
+    "storybook",
+    "vanilla-js"
+  ],
   "author": "David",
   "license": "Private",
   "engines": {
     "node": ">=22.5"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
   }
 }
