@@ -164,6 +164,7 @@ async function initDatabase() {
     // database instead of an isolated /tmp file.
     const tursoUrl = process.env.TURSO_DATABASE_URL || process.env.TURSO_DATABASE_URI;
     const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
     if (tursoUrl && tursoToken) {
         const { createClient } = await import('@libsql/client');
         tursoClient = createClient({
