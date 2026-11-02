@@ -6,6 +6,9 @@ server/data/
 # Temporary test artifacts
 data/tmp-test-*
 
+# Claude Code tooling
+.claude/
+
 # Editor / OS
 .DS_Store
 Thumbs.db
